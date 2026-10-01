@@ -58,6 +58,27 @@ pub(crate) fn create_agent_session_params_for_project(
         .or_else(|| read_text_from_map(&launch_settings, "icon"));
     let configured_command = read_text_from_map(&agent_config, "command")
         .or_else(|| read_text_from_map(&launch_settings, "agentCommand"));
+    let dot_launch = crate::open_dots::launch::dot_launch_for_project(db, project);
+    let dot_family = dot_launch.as_ref().and_then(|_| {
+        resume_agent_family_id(Some(agent_id.clone()), &agent_config, &launch_settings)
+    });
+    // The family of the agent the dot runs on: its model only fits that family.
+    let dot_agent_family = dot_launch.as_ref().and_then(|launch| {
+        if launch.agent_id == agent_id {
+            return dot_family.clone();
+        }
+        let config = resolve_project_agent_config(project, &launch.agent_id, None);
+        resume_agent_family_id(Some(launch.agent_id.clone()), &config, &Map::new())
+    });
+    let dot_params = dot_launch.as_ref().and_then(|launch| {
+        crate::open_dots::launch::with_dot_model(
+            params,
+            dot_family.as_deref(),
+            dot_agent_family.as_deref(),
+            launch,
+        )
+    });
+    let params = dot_params.as_ref().unwrap_or(params);
     let configured_command = apply_requested_agent_model(
         &agent_id,
         &agent_config,
@@ -91,6 +112,13 @@ pub(crate) fn create_agent_session_params_for_project(
         params,
         configured_command,
     )?;
+    let configured_command = apply_dot_launch_flags(
+        dot_launch.as_ref(),
+        dot_family.as_deref(),
+        agentbox_provider.is_some(),
+        crate::coordinators::coordinator_create_request(params)?.is_some(),
+        configured_command,
+    );
     let account_command = if agentbox_provider.is_some() {
         None
     } else {
@@ -383,6 +411,33 @@ fn apply_coordinator_role(
         .unwrap_or_else(|| family.clone());
     crate::coordinators::with_coordinator_role(&base, &family, std::path::Path::new(&role_file))
         .map(Some)
+}
+
+/// CDXC:OpenDots 2026-10-01 WHY:
+/// A session in a dot project gets the dot's tools (the `ghostex dots mcp` server) and instructions (its generated AGENTS.md) as flags in the saved base command, beside the coordinator role, so every client's create gets them and resume, fork and account wrapping keep them. It stays out of `resolve_project_agent_config`, which commit-message and title runs also read. A box session runs elsewhere and gets nothing, and agents other than Claude and Codex read AGENTS.md from the dot's folder. A coordinator started in a dot project keeps its role: Claude reads only the last `--append-system-prompt-file`, so the dot's is left out there.
+/// SEE-ALSO: server/src/open_dots/launch.rs, docs/2026-10-01/opendots/CONTRACT.md §4.
+fn apply_dot_launch_flags(
+    launch: Option<&crate::open_dots::launch::DotLaunch>,
+    family: Option<&str>,
+    in_box: bool,
+    coordinator: bool,
+    command: Option<String>,
+) -> Option<String> {
+    let (Some(launch), Some(family)) = (launch, family) else {
+        return command;
+    };
+    if in_box || !matches!(family, "claude" | "codex") {
+        return command;
+    }
+    let base = command
+        .or_else(|| default_agent_command(family).map(str::to_string))
+        .unwrap_or_else(|| family.to_string());
+    Some(crate::open_dots::launch::with_dot_flags(
+        &base,
+        family,
+        launch,
+        !coordinator,
+    ))
 }
 
 pub(crate) fn create_agent_session_default_title(

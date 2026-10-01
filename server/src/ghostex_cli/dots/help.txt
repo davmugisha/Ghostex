@@ -1,0 +1,30 @@
+ghostex dots: OpenDots, personal agents that work on their own (Settings > Extensions > OpenDots).
+
+USAGE
+  ghostex dots list [--json]                      Your dots, what they are doing, and what needs you
+  ghostex dots show <dot> [--json]                One dot: its job, rules, memory, skills and routines
+  ghostex dots create --name <name> [--job <text>] [--instructions <text>]
+                      [--agent <agent-id>] [--model <model>] [--json]
+  ghostex dots chat <dot> [--message <text>] [--title <title>] [--json]
+                                                  Start a new conversation with a dot
+  ghostex dots pause <dot>                        Stop its work and skip its routines, triggers and hand-offs
+  ghostex dots resume <dot>
+  ghostex dots stop <dot>                         Stop what it is doing now
+  ghostex dots delete <dot>                       Delete it (its folder is kept)
+  ghostex dots approvals [--json]                 What your dots are waiting on you for
+  ghostex dots approve <approval-id> [--always]   Approve (--always also makes its rule "allow")
+  ghostex dots deny <approval-id>
+  ghostex dots answer <approval-id> <text>        Answer a dot's question
+  ghostex dots rpc <method> --params-base64 <b64> Any OpenDots method; prints {ok, result} or {ok:false, code, message}
+  ghostex dots rpc <method> --params-stdin        The same, with the JSON params read from standard input
+  ghostex dots mcp --dot <dot-id>                 Internal: the MCP server every dot session loads
+
+<dot> is a dot's id or its name (any case).
+
+WHAT A DOT IS
+  A dot is a personal agent with a name, a job and a face. It runs on an agent you
+  already use (Claude Code by default) in its own folder, remembers what you tell
+  it, learns skills, runs routines on a schedule, reacts to events in your apps,
+  uses its own browser with your saved logins, and asks before doing anything
+  risky. Every conversation with a dot is an ordinary Ghostex session in its
+  project, listed in the sidebar's Dots space.

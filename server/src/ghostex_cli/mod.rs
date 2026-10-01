@@ -5,6 +5,7 @@ mod agent_cli;
 mod agentbox_cli;
 mod agents;
 mod coordinator;
+mod dots;
 pub mod args;
 pub mod attach;
 pub mod automations;
@@ -81,6 +82,7 @@ const HELP_GATE_EXCLUDED: &[&str] = &[
     "agentbox",
     "agents",
     "coordinator",
+    "dots",
     "automations",
     "bd",
     "beads",
@@ -179,6 +181,7 @@ fn is_known_command(name: &str) -> bool {
         "agentbox",
         "agents",
         "coordinator",
+        "dots",
         "sessions",
         "s",
         "list-sessions",
@@ -364,6 +367,7 @@ fn run_command(name: &str, args: &[String]) -> CliResult<()> {
         "agentbox" => agentbox_cli::run(args),
         "agents" => agents::run(args),
         "coordinator" => coordinator::run(args),
+        "dots" => dots::run(args),
         "sessions" | "s" | "list-sessions" | "ls" => sessions::sessions_command(args),
         "find" | "f" => launchers::zehn_search_command(args),
         "history" | "h" => launchers::history_command(args),

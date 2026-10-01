@@ -174,6 +174,10 @@ pub(super) fn to_mobile_session_list(result: &Value) -> Value {
                             "isChat".to_string(),
                             json!(is_mobile_chats_collection_project(project)),
                         );
+                        if let Some(dot_id) = mobile_dot_id(project) {
+                            project_map.insert("isDot".to_string(), json!(true));
+                            project_map.insert("dotId".to_string(), json!(dot_id));
+                        }
                         Value::Object(project_map)
                     })
                     .collect(),
@@ -228,6 +232,67 @@ pub(super) fn to_mobile_session_list(result: &Value) -> Value {
         map.insert("workspaceGroups".to_string(), groups);
     }
     Value::Object(map)
+}
+
+/// The dot a project row stands for (`launchSettings { isDot, dotId }`, server/src/open_dots/).
+fn mobile_dot_id(project: &Value) -> Option<&str> {
+    let launch_settings = project.get("launchSettings")?;
+    if launch_settings.get("isDot") != Some(&Value::Bool(true)) {
+        return None;
+    }
+    launch_settings
+        .get("dotId")
+        .and_then(Value::as_str)
+        .filter(|id| id.starts_with("dot_"))
+}
+
+/// CDXC:OpenDots 2026-10-01 WHY:
+/// The phone reaches gxserver only through this CLI, so the summary carries what a dot row draws (its face, agent, pause and pending approvals) and whether OpenDots is on, from one small `rowFacts` call; a daemon without OpenDots reads as off.
+/// SEE-ALSO: docs/2026-10-01/opendots/CONTRACT.md §3 and §10.
+pub(super) fn apply_open_dots_summary(summary: &mut Map<String, Value>, flags: &Flags) {
+    let facts = crate::ghostex_cli::rpc::call_gxserver_rpc(
+        "/api/openDotsRpc",
+        &json!({ "method": "rowFacts", "params": {} }),
+        flags,
+    )
+    .ok();
+    let enabled = facts
+        .as_ref()
+        .and_then(|facts| facts.get("enabled"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    summary.insert("openDots".to_string(), json!({ "enabled": enabled }));
+    let dots: Vec<Value> = facts
+        .as_ref()
+        .and_then(|facts| facts.get("dots"))
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let Some(projects) = summary.get_mut("projects").and_then(Value::as_array_mut) else {
+        return;
+    };
+    for project in projects.iter_mut() {
+        let Some(project) = project.as_object_mut() else {
+            continue;
+        };
+        let Some(dot_id) = project
+            .get("dotId")
+            .and_then(Value::as_str)
+            .map(str::to_string)
+        else {
+            continue;
+        };
+        if let Some(row) = dots
+            .iter()
+            .find(|row| row.get("dotId").and_then(Value::as_str) == Some(dot_id.as_str()))
+        {
+            for key in ["dotLook", "dotAgentId", "dotPaused", "dotNeedsYou"] {
+                if let Some(value) = row.get(key) {
+                    project.insert(key.to_string(), value.clone());
+                }
+            }
+        }
+    }
 }
 
 fn mobile_sort_order(session: &Value) -> f64 {

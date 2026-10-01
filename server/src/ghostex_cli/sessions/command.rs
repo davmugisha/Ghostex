@@ -33,6 +33,7 @@ pub fn sessions_command(args: &[String]) -> CliResult<()> {
                 merged.insert(key, value);
             }
         }
+        apply_open_dots_summary(&mut merged, flags);
         print_json(&Value::Object(merged));
         return Ok(());
     }

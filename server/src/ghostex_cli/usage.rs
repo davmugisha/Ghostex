@@ -473,6 +473,10 @@ pub fn usage() -> String {
             "Run a coordinator: one agent you talk to that starts, supervises, and reports on thread sessions",
         ),
         format_help_command(
+            "dots --help",
+            "OpenDots: personal agents with their own browser, memory, rules and routines",
+        ),
+        format_help_command(
             "agentbox status | list | url <session> [--screen] [--json]",
             "Check agentbox readiness, list boxes, and print a box session's web app or screen URL",
         ),

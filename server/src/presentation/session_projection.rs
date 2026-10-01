@@ -103,6 +103,8 @@ pub(crate) fn project_presentation_project(project: &Value) -> Value {
             Value::from(crate::bot_feed::published_bot_runs_today(profile)),
         );
     }
+    // CDXC:OpenDots 2026-10-01 WHY: like the bot fields above, the dot's face, agent, pause and pending approvals ride the snapshot row, read from an in-memory copy (open_dots/publish.rs) so building a snapshot stays in memory.
+    output.extend(crate::open_dots::dot_presentation_fields(project));
     Value::Object(output)
 }
 

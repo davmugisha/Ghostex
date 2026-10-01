@@ -263,6 +263,8 @@ export type GxserverEndpointPath =
   | "/api/createQuickProject"
   | "/api/syncBotProjects"
   | "/api/listBotFeed"
+  | "/api/openDotsRpc"
+  | "/api/openDotsTool"
   | "/api/listProjectWorktrees"
   | "/api/createProjectWorktree"
   | "/api/openProjectWorktree"

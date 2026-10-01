@@ -79,6 +79,13 @@ pub(super) async fn route_http(
         return crate::project_views::serve(path).await;
     }
 
+    // OpenDots: Composio's OAuth redirect lands in the user's browser, which has no gxserver
+    // token; the handler trusts only the OAuth `state` its own sign-in issued.
+    if method == Method::GET && path == crate::open_dots::composio::OAUTH_REDIRECT_PATH {
+        let query = parts.uri.query().map(str::to_string);
+        return crate::open_dots::composio::serve_oauth_redirect(state.clone(), query).await;
+    }
+
     let endpoint = endpoint_for(&path);
 
     /*
@@ -540,6 +547,24 @@ pub(super) async fn route_http(
                     DomainStateError::corrupt_state(format!("Bot feed read failed: {error}")),
                 ),
             }
+        }
+        "/api/openDotsRpc" => {
+            crate::open_dots::handle_open_dots_rpc_http(
+                &state,
+                endpoint.path,
+                request_id,
+                &body_json,
+            )
+            .await
+        }
+        "/api/openDotsTool" => {
+            crate::open_dots::handle_open_dots_tool_http(
+                &state,
+                endpoint.path,
+                request_id,
+                &body_json,
+            )
+            .await
         }
         "/api/listProjectWorktrees"
         | "/api/createProjectWorktree"

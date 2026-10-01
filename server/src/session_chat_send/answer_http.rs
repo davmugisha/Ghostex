@@ -54,6 +54,23 @@ pub(crate) async fn handle_answer_session_chat_prompt_http(
         .get("kind")
         .and_then(Value::as_str)
         .unwrap_or_default();
+    // An OpenDots approval card is answered in gxserver: the agent waits inside a tool call, so
+    // nothing is typed (CONTRACT §6 in docs/2026-10-01/opendots/). Only a question answer can be
+    // meant for one; every other kind answers the agent's own screen below.
+    if kind == "question" {
+        if let Some(answered) =
+            crate::open_dots::resolve_approval_from_chat(state, &target.session, &params).await
+        {
+            return match answered {
+                Ok(result) => routed_json(
+                    Some(endpoint_path),
+                    StatusCode::OK,
+                    rpc_success(request_id, result),
+                ),
+                Err(error) => domain_error_response(endpoint_path, request_id, error),
+            };
+        }
+    }
     if session_chat_agent_for_session(&target.session).as_deref() == Some("opencode") {
         let id = match crate::session_chat_opencode::session_id(&target.session) {
             Ok(id) => id,

@@ -697,6 +697,12 @@ pub fn endpoint_for(path: &str) -> Option<EndpointDescriptor> {
         */
         "/api/listBotFeed" => full_local(path),
         /*
+        CDXC:OpenDots 2026-10-01 WHY:
+        The dots' saved logins, memory and tool calls live on this computer; only a client on this
+        computer (the desktop, the CLI the phone runs over SSH, the dots' own MCP servers) reaches them.
+        */
+        "/api/openDotsRpc" | "/api/openDotsTool" => full_local(path),
+        /*
         CDXC:Telemetry 2026-08-26:
         The desktop app's loopback analytics ping. Authenticated like every other
         local endpoint, but deliberately NOT protocol-version gated: the caller

@@ -259,6 +259,7 @@ pub async fn run_gxserver_foreground(
     bot_sync::start_bot_project_sync(state.clone());
     close_after_done_runtime::start_close_after_done_runtime(state.clone());
     coordinator_runtime::start_coordinator_runtime(state.clone());
+    crate::open_dots::start_open_dots_runtime(state.clone());
     crate::agentbox::start_agentbox_activity_poller(state.clone());
     /*
     CDXC:SessionChat 2026-08-21:
@@ -377,6 +378,9 @@ pub async fn run_gxserver_foreground(
     crate::accounts::setup::cancel_all(&state);
     state.extension_registry.stop_all();
     crate::project_views::stop_all();
+    // Each dot's headless Chrome is a child of this process; close them before exit (a runtime
+    // shutdown can drop the blocking task that would otherwise do it).
+    crate::open_dots::browser::shutdown_all();
     shutdown_tail_steps.push((
         "accountsExtensionsProjectViews",
         step_started.elapsed().as_millis(),

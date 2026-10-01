@@ -6,6 +6,7 @@ build = "build.rs"
 
 [dependencies]
 anyhow = "1"
+aes-gcm = { version = "0.11", default-features = false, features = ["aes", "alloc"] }
 axum = { version = "0.8", features = ["ws"] }
 base64 = "0.22"
 bytes = "1"
@@ -21,6 +22,9 @@ md-5 = "0.10"
 portable-pty = "0.9"
 rand = "0.8"
 tungstenite = { version = "0.24", default-features = false, features = ["handshake"] }
+# OpenDots' Composio trigger events: a wss:// Pusher socket over the rustls ureq already ships (same features, no new crates).
+rustls = { version = "0.23", default-features = false, features = ["ring", "logging", "std", "tls12"] }
+webpki-roots = "0.26"
 ureq = { version = "2", features = ["json"] }
 rusqlite = { version = "0.32", features = ["bundled"] }
 serde = { version = "1", features = ["derive"] }

@@ -34,6 +34,7 @@ pub(crate) mod managed_tools;
 pub mod navigation_history;
 pub mod notification_feed;
 pub mod open_conversation;
+pub(crate) mod open_dots;
 pub mod paths;
 pub mod platform;
 pub mod portless;
