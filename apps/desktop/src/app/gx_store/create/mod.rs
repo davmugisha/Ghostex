@@ -14,6 +14,7 @@ mod bot;
 mod browser;
 mod claim;
 mod coordinator;
+mod dot;
 mod focus_created;
 mod folder_pick;
 mod os_integration;

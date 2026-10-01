@@ -1538,6 +1538,75 @@ Setting: `botAutomationsHidden` (on by default, which keeps the feed hidden).
 
 ## Remote machines, web, and mobile
 
+## OpenDots (personal agents)
+
+OpenDots gives you personal agents, called dots, that work on their own and
+message you when they are done. It is off by default: turn it on in Settings >
+Extensions, under Planning and automation. With OpenDots off the sidebar looks
+and works as before.
+
+- **The Dots Space**: a dots button (three circles) sits at the end of the Space
+  row when Spaces are on, or in the sidebar's top row when they are off. Click
+  it to show your dots; while they are showing it turns into a back arrow (Show
+  projects). Dots never appear in the Projects list or any other Space.
+- **The OpenDots row** at the top of the Dots Space opens the OpenDots view:
+  hand a task to any dot, answer what needs you, see your dots and the latest
+  things they sent you. Its badge counts approvals and questions waiting for you.
+- **A dot** has a name, a job, your instructions, a face you design, and the
+  agent and model it runs on (Claude Code by default; Codex and the other agents
+  work too). Each dot works in its own folder on this computer
+  (`~/.local/share/ghostex/dots/<name>`). Make one with New dot in the OpenDots
+  view, starting from scratch or from Scout, Juniper, Atlas or Bix.
+- **Chats**: the **+** on a dot's row (or New chat on its page) starts a new
+  conversation with it. Conversations are ordinary sessions under the dot, so
+  they open in chat or terminal, sleep, wake and resume like any session, and
+  appear on the phone.
+- **Rules and approvals**: a dot takes reversible, low-stakes actions itself
+  and asks before anything that sends, posts, buys, deletes or speaks for you.
+  Add rules like "When Juniper wants to reply to an email: ask first" on the
+  dot's Setup tab, or for every dot in OpenDots settings (allow, ask first, or
+  never). A dot's own rules come before the rules for every dot, except that a
+  "never" for every dot always holds; ask first wins a conflict. A question or
+  approval shows as a card in the chat, in the OpenDots view and on the phone;
+  Always allow makes that dot's rule an allow rule.
+- **Memory and skills**: a dot remembers facts and preferences you tell it and
+  saves skills for tasks it repeats. You can add or remove memories and read or
+  delete skills on its Setup tab.
+- **Routines**: ask a dot "every weekday at 8, brief me on my inbox", or add a
+  routine on its Setup tab (presets or a cron schedule in your time zone). Each
+  routine keeps its own conversation, and Run runs it now. Routines run while
+  gxserver runs; one that comes due while the computer sleeps is skipped.
+- **Its own browser**: every dot has its own Chrome profile that stays logged
+  in. The Computer tab shows its screen; Take over lets you click and type
+  (for a login or a captcha) and Hand back returns control (after two minutes
+  without your input the dot gets it back on its own). Saved logins (OpenDots
+  settings) are encrypted with a key in your Keychain and typed into the page
+  for the dot, only on a secure (https) page of the site they belong to, so it
+  never sees your password. A dot's browser closes after a while without use
+  and reopens where it left off. Needs Google Chrome.
+- **Your apps (Composio)**: sign in with Composio in OpenDots settings and your
+  dots can use Gmail, Calendar, Slack, Notion, GitHub and many more. Reading
+  runs on its own; sending, posting or changing anything asks first.
+- **Triggers**: with a Composio project API key in OpenDots settings, a dot can
+  wake when something happens in your apps (a new email, a GitHub issue) and do
+  what you told it to, in that trigger's own conversation.
+- **Dots working together**: a dot can hand work to another dot; the reply
+  comes back into the asking chat. A team chat (New team chat) gives one lead
+  dot a team to delegate to.
+- **Pause** stops a dot's current work and skips its routines, triggers and
+  hand-offs until you resume it; chats you start yourself still run.
+- A dot's folder is trusted for every agent automatically (see Trust and
+  Remember), so a routine or hand-off never waits on a folder-trust question.
+- **On the phone**: a Dots chip ends the Space chips; it lists your dots and
+  their chats, and the OpenDots row opens the same Home, dot pages and settings.
+
+Commands: `ghostex dots list`, `ghostex dots create --name <name> --job <text>`,
+`ghostex dots chat <dot> --message <text>`, `ghostex dots approvals`,
+`ghostex dots approve <id> [--always]`, `ghostex dots deny <id>`,
+`ghostex dots pause|resume|stop <dot>` (`ghostex dots --help` lists them all).
+
+Setting: `openDotsHidden` (on by default, which keeps OpenDots hidden).
+
 Ghostex is a client/server system: gxserver runs on each computer and owns its
 sessions, so any client can control agents on any machine.
 

@@ -47,7 +47,7 @@ pub enum SidebarUiIntent {
         section_key: String,
         space_id: String,
     },
-    /// Show the user's projects or the Hermes bots. The Hermes button's toggle.
+    /// Show the user's projects, the Hermes bots or the dots. The Hermes and Dots buttons' toggle.
     SetSidebarMode {
         mode: crate::sidebar_view::SidebarMode,
     },

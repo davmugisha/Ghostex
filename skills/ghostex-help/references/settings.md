@@ -379,6 +379,7 @@ How to use this file:
 - **Automate** `automate` (Settings UI row without a settings key; use `ghostex settings open`): Turn repeatable project routines into simple workflows you can run whenever you need them.
 - **Bots** `bots` (Settings UI row without a settings key; use `ghostex settings open`): Swap the sidebar to your Hermes agents: one row each, with a new session one click away. Needs the Hermes CLI.
 - **Bot automations** `botAutomations` (Settings UI row without a settings key; use `ghostex settings open`): A feed of every Hermes cron run, one channel per job, opened from the Bots sidebar. Needs Bots.
+- **OpenDots** `openDots` (Settings UI row without a settings key; use `ghostex settings open`): Personal agents that work on their own: each dot has its own browser, memory, rules and routines, asks before anything risky, and shows as a Dots Space in the sidebar.
 - **Files** `docs` (Settings UI row without a settings key; use `ghostex settings open`): Browse your project’s notes, plans, and reference files together in one focused reading space.
 - **Terminal** `terminal` (Settings UI row without a settings key; use `ghostex settings open`): A command terminal beside your sessions, with its own tabs and splits, that works like the Commands pane but lives in the view panel.
 - **Tips & Tricks** `tips` (Settings UI row without a settings key; use `ghostex settings open`): A panel of short tips for getting more out of Ghostex, opened from the ⋯ menu.
@@ -393,6 +394,7 @@ How to use this file:
 - **Chromium runtime (CEF)** `cef` (Settings UI row without a settings key; use `ghostex settings open`): Install, reinstall or uninstall the optional web runtime used by the Browser, the Code view, website and extension views, and HTML files in Files.
 - **Hide Bots** `botsHidden` (boolean, default true): Stop offering Bots, the sidebar mode with one row per Hermes profile. Hidden by default; offered only where the Hermes CLI is installed.
 - **Hide Bot automations** `botAutomationsHidden` (boolean, default true): Stop offering Bot automations, the Automations row in the Bots sidebar that opens a feed of every Hermes cron run. Hidden by default; needs Bots.
+- **Hide OpenDots** `openDotsHidden` (boolean, default true): Stop offering OpenDots, personal agents with their own browser, memory, rules and routines, shown as the Dots Space in the sidebar. Hidden by default.
 ### Extensions Store
 
 - **Extension store** `store` (Settings UI row without a settings key; use `ghostex settings open`): Browse audited extensions, install them, and manage what is already installed.

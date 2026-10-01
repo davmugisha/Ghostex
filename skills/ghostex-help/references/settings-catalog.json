@@ -9281,6 +9281,17 @@
       "agentWritable": false
     },
     {
+      "key": "openDots",
+      "title": "OpenDots",
+      "subtitle": "Personal agents that work on their own: each dot has its own browser, memory, rules and routines, asks before anything risky, and shows as a Dots Space in the sidebar.",
+      "tab": "extensions",
+      "tabTitle": "Extensions",
+      "section": "official",
+      "sectionTitle": "Built-in",
+      "type": "ui",
+      "agentWritable": false
+    },
+    {
       "key": "docs",
       "title": "Files",
       "subtitle": "Browse your project’s notes, plans, and reference files together in one focused reading space.",
@@ -9428,6 +9439,18 @@
       "key": "botAutomationsHidden",
       "title": "Hide Bot automations",
       "subtitle": "Stop offering Bot automations, the Automations row in the Bots sidebar that opens a feed of every Hermes cron run. Hidden by default; needs Bots.",
+      "tab": "extensions",
+      "tabTitle": "Extensions",
+      "section": "official",
+      "sectionTitle": "Built-in",
+      "type": "boolean",
+      "default": true,
+      "agentWritable": true
+    },
+    {
+      "key": "openDotsHidden",
+      "title": "Hide OpenDots",
+      "subtitle": "Stop offering OpenDots, personal agents with their own browser, memory, rules and routines, shown as the Dots Space in the sidebar. Hidden by default.",
       "tab": "extensions",
       "tabTitle": "Extensions",
       "section": "official",

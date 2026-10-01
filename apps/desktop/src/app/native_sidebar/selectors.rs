@@ -48,14 +48,17 @@ impl GhostexGpuiApp {
         cx: &mut gpui::Context<Self>,
     ) -> AnyElement {
         let scale = appearance.scale;
-        // Space buttons have a fixed 28px face and 4px gap in both renderers. The Hermes slot and
-        // its hairline take one Space's room plus the hairline's at the end of the row.
-        let bots_room = if snapshot.bots_enabled {
-            32.0 + super::bots::BOTS_SPACE_SLOT_DIVIDER_WIDTH
+        // Space buttons have a fixed 28px face and 4px gap in both renderers. The Hermes and Dots
+        // slots take one Space's room each, and the hairline before them its own, at the end of
+        // the row.
+        let extension_slots =
+            usize::from(snapshot.bots_enabled) + usize::from(snapshot.dots_enabled);
+        let extension_room = if extension_slots > 0 {
+            32.0 * extension_slots as f32 + super::bots::BOTS_SPACE_SLOT_DIVIDER_WIDTH
         } else {
             0.0
         };
-        let capacity = (((self.sidebar_width / scale - 13.0) + 4.0 - bots_room) / 32.0)
+        let capacity = (((self.sidebar_width / scale - 13.0) + 4.0 - extension_room) / 32.0)
             .floor()
             .max(2.0) as usize;
         let user_spaces: Vec<_> = snapshot
@@ -103,7 +106,8 @@ impl GhostexGpuiApp {
                         items.push(json!({"label": "New Space", "icon": "plus", "command": {"type": "editSpace"}}));
                         Self::show_native_sidebar_menu(&json!(items), event.position(), scale, window, cx);
                     }))))
-                .when(snapshot.bots_enabled, |row| row.child(self.render_native_sidebar_bots_space_slot(snapshot.bots_mode, appearance, cx)))))
+                .when(snapshot.bots_enabled, |row| row.child(self.render_native_sidebar_bots_space_slot(snapshot.bots_mode, appearance, cx)))
+                .when(snapshot.dots_enabled, |row| row.child(self.render_native_sidebar_dots_space_slot(snapshot.dots_mode, !snapshot.bots_enabled, appearance, cx)))))
             .into_any_element()
     }
 

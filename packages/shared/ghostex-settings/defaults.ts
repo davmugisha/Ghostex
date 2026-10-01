@@ -148,6 +148,11 @@ export const DEFAULT_ghostex_SETTINGS: ghostexSettings = {
    * User: Bot automations is its own switch, off by default, so Bots can be on without the feed.
    */
   botAutomationsHidden: true,
+  /**
+   * CDXC:OpenDots 2026-10-01 WHY:
+   * Off by default like every sidebar extension, so Ghostex looks exactly as it did until the user turns OpenDots on.
+   */
+  openDotsHidden: true,
   tipsAndTricksTitlebarButtonHidden: false,
   notificationsTitlebarButtonHidden: false,
   helpTitlebarButtonHidden: false,

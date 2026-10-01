@@ -177,6 +177,22 @@ pub struct PresentationProject {
     /// project and from an older daemon.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bot_runs_today: Option<u64>,
+    /// The OpenDots dot this project is the home of; absent for every other project and from an
+    /// older daemon (server/src/open_dots/).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dot_id: Option<String>,
+    /// That dot's face (`{ shape, color, accent, eyeColor, material, eyes, accessory }`), kept loose.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dot_look: Option<Value>,
+    /// The agent the dot's "+" launches.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dot_agent_id: Option<String>,
+    /// The dot is paused (no routines, triggers or hand-offs).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dot_paused: Option<bool>,
+    /// How many approvals and questions of this dot wait for the user.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dot_needs_you: Option<u64>,
 }
 
 impl PresentationProject {

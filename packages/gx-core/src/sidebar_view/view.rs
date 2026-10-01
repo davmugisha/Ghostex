@@ -4,6 +4,7 @@
 use std::sync::Arc;
 
 use crate::keys::SessionKey;
+use crate::open_dots::{DotFaceStatus, DotLook};
 
 use super::inputs::{CloseAfterDoneInput, ProjectDiffStats, SectionId};
 use super::session_text::{last_interaction_label, next_label_deadline, timer_trailing_label};
@@ -37,6 +38,14 @@ pub struct SidebarView {
     pub automations_row: bool,
     /// The runs every bot delivered today, which the Automations row shows.
     pub automations_today: u64,
+    /// The OpenDots extension is on, so the renderer draws the Dots button.
+    pub dots_enabled: bool,
+    /// The list shows the dots rather than the projects.
+    pub dots_mode: bool,
+    /// The Dots list starts with the pinned OpenDots row (it opens the OpenDots view's Home).
+    pub open_dots_row: bool,
+    /// Every dot's approvals and questions waiting for the user, which the OpenDots row badges.
+    pub dots_needs_you: u64,
     /// Every group of the machine that is drawn, in order.
     pub groups: Vec<GroupView>,
     pub collections: Vec<CollectionView>,
@@ -154,6 +163,17 @@ pub struct ProjectContextView {
     pub bot_profile: Option<String>,
     /// Whether that bot's Hermes gateway runs (the row's dot); false for every ordinary project.
     pub bot_gateway_running: bool,
+    /// The OpenDots dot this project is the home of; absent for every other project.
+    pub dot_id: Option<String>,
+    /// That dot's face, normalized.
+    pub dot_look: Option<DotLook>,
+    /// The agent the dot's "+" launches.
+    pub dot_agent_id: Option<String>,
+    pub dot_paused: bool,
+    /// The dot's approvals and questions waiting for the user.
+    pub dot_needs_you: u64,
+    /// The dot's state, which its row's face and status dot draw; absent for every other project.
+    pub dot_status: Option<DotFaceStatus>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]

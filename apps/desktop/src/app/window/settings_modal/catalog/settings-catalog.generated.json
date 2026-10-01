@@ -6892,6 +6892,11 @@
                 "subtitle": "A feed of every Hermes cron run, one channel per job, opened from the Bots sidebar. Needs Bots."
               },
               {
+                "key": "openDots",
+                "title": "OpenDots",
+                "subtitle": "Personal agents that work on their own: each dot has its own browser, memory, rules and routines, asks before anything risky, and shows as a Dots Space in the sidebar."
+              },
+              {
                 "key": "docs",
                 "title": "Files",
                 "subtitle": "Browse your project’s notes, plans, and reference files together in one focused reading space."
@@ -11052,6 +11057,15 @@
             "title": "Bot automations"
           },
           {
+            "appWide": true,
+            "description": "Personal agents that work on their own: each dot has its own browser, memory, rules and routines, asks before anything risky, and shows as a Dots Space in the sidebar.",
+            "category": "planning",
+            "id": "openDots",
+            "placement": "sidebar",
+            "settingsKey": "openDotsHidden",
+            "title": "OpenDots"
+          },
+          {
             "description": "Browse your project’s notes, plans, and reference files together in one focused reading space.",
             "category": "code-and-files",
             "id": "docs",
@@ -11541,6 +11555,7 @@
           "projectWebsiteViews": {},
           "botsHidden": true,
           "botAutomationsHidden": true,
+          "openDotsHidden": true,
           "tipsAndTricksTitlebarButtonHidden": false,
           "notificationsTitlebarButtonHidden": false,
           "helpTitlebarButtonHidden": false,

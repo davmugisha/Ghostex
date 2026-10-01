@@ -292,6 +292,7 @@ export function normalizeghostexSettings(candidate: unknown): ghostexSettings {
     ),
     botsHidden: readBoolean(source, 'botsHidden', DEFAULT_ghostex_SETTINGS.botsHidden),
     botAutomationsHidden: readBoolean(source, 'botAutomationsHidden', DEFAULT_ghostex_SETTINGS.botAutomationsHidden),
+    openDotsHidden: readBoolean(source, 'openDotsHidden', DEFAULT_ghostex_SETTINGS.openDotsHidden),
     tipsAndTricksTitlebarButtonHidden: readBoolean(
       source,
       'tipsAndTricksTitlebarButtonHidden',

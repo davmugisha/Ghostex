@@ -135,12 +135,13 @@ impl GhostexGpuiApp {
         }
         let command = if target_kind == "space"
             && matches!(source.kind, "group" | "collection")
-            // Bots belong to no Space (gx-core `assemble`), so a Space tile takes no bot.
+            // Bots and dots belong to no Space (gx-core `assemble`), so a Space tile takes no bot
+            // and no dot.
             && !self
                 .native_sidebar
                 .snapshot
                 .as_ref()
-                .is_some_and(|snapshot| snapshot.bots_mode)
+                .is_some_and(|snapshot| snapshot.bots_mode || snapshot.dots_mode)
         {
             json!({"type": "moveToSpace", "sourceKind": source.kind, "sourceId": source.id, "spaceId": target_id})
         } else if source.kind == "group" && matches!(target_kind, "collection" | "ungroup") {

@@ -7,6 +7,7 @@ mod find_prompts;
 mod git_menu;
 mod host_messages;
 mod modals;
+mod open_dots;
 mod project_path_actions;
 mod toasts;
 mod workspace;
@@ -25,4 +26,6 @@ pub(crate) struct WebHostState {
     pub(crate) git_active_project: Option<String>,
     /// Whether the header's Git dropdown is open (`git_menu.rs`).
     pub(crate) git_menu_open: bool,
+    /// The OpenDots view and whether the work area shows it (`open_dots.rs`).
+    pub(crate) open_dots: open_dots::WebOpenDots,
 }

@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::keys::SessionKey;
+use crate::open_dots::{DotFaceStatus, DotLook};
 
 use super::inputs::{SectionId, SidebarSettings, SidebarUiState};
 use super::ordering::{order_rows_for_display, row_deadline_ms};
@@ -57,6 +58,12 @@ pub(crate) struct ProjectContextInput {
     pub(crate) bot_profile: Option<String>,
     pub(crate) bot_gateway_running: bool,
     pub(crate) bot_runs_today: u64,
+    /// The OpenDots dot this project is the home of, and that dot's facts off its project row.
+    pub(crate) dot_id: Option<String>,
+    pub(crate) dot_look: Option<DotLook>,
+    pub(crate) dot_agent_id: Option<String>,
+    pub(crate) dot_paused: bool,
+    pub(crate) dot_needs_you: u64,
 }
 
 /// Who is focused right now, in the vocabulary the rows compare against.
@@ -199,6 +206,15 @@ pub(crate) fn build_group(
         }
     }
     let summary = group_summary(&sessions);
+    let questions = sessions
+        .iter()
+        .filter(|session| session.row.pending_question_count > 0)
+        .count();
+    let dot_status = plan
+        .project
+        .as_ref()
+        .filter(|project| project.dot_id.is_some())
+        .map(|project| dot_row_status(project, &summary, questions));
     let core = GroupCore {
         group_id: plan.group_id.clone(),
         storage_id: plan.storage_id.clone(),
@@ -206,7 +222,7 @@ pub(crate) fn build_group(
         title_tooltip: plan
             .project
             .as_ref()
-            .map(|project| project_title_tooltip(plan, project, sessions.len())),
+            .map(|project| project_title_tooltip(plan, project, sessions.len(), dot_status)),
         is_active,
         project_context: plan.project.as_ref().map(|project| ProjectContextView {
             project_id: project.project_id.clone(),
@@ -218,6 +234,12 @@ pub(crate) fn build_group(
             git_remote_origin_url: project.git_remote_origin_url.clone(),
             bot_profile: project.bot_profile.clone(),
             bot_gateway_running: project.bot_gateway_running,
+            dot_id: project.dot_id.clone(),
+            dot_look: project.dot_look.clone(),
+            dot_agent_id: project.dot_agent_id.clone(),
+            dot_paused: project.dot_paused,
+            dot_needs_you: project.dot_needs_you,
+            dot_status,
         }),
         summary,
         collapsed: ui.collapse.collapsed_groups.contains(&plan.group_id),
@@ -348,14 +370,49 @@ pub(crate) fn group_summary(sessions: &[SessionView]) -> GroupSummary {
     summary
 }
 
+/// A dot row's state, in OpenDots' order: paused, then waiting (an approval card or a question for
+/// the user), then working, else idle.
+///
+/// CDXC:OpenDots 2026-10-01 WHY:
+/// A session's `attention` also means "its turn finished and you haven't looked", so counting it made every dot that just answered read "Needs you"; the dot waits on the user only for its cards (`dotNeedsYou`, which gxserver counts exactly) and pending questions, and the session rows keep their own attention marks.
+fn dot_row_status(
+    project: &ProjectContextInput,
+    summary: &GroupSummary,
+    questions: usize,
+) -> DotFaceStatus {
+    if project.dot_paused {
+        DotFaceStatus::Paused
+    } else if project.dot_needs_you > 0 || questions > 0 {
+        DotFaceStatus::Waiting
+    } else if summary.working_count > 0 {
+        DotFaceStatus::Working
+    } else {
+        DotFaceStatus::Idle
+    }
+}
+
 /// The project header tooltip: title, kind, path, git numbers, and the session and worktree
 /// counts. A bot's has no git or worktree line, because a bot is not a repo, and names its
-/// gateway state, which its row's dot shows.
+/// gateway state, which its row's dot shows. A dot's names its state the same way.
 fn project_title_tooltip(
     plan: &GroupPlan,
     project: &ProjectContextInput,
     session_count: usize,
+    dot_status: Option<DotFaceStatus>,
 ) -> String {
+    if let Some(status) = dot_status {
+        let state = match (status, project.dot_needs_you) {
+            (_, 0) => status.label().to_string(),
+            (DotFaceStatus::Paused, count) => format!("Paused · Needs you ({count})"),
+            (_, count) => format!("Needs you ({count})"),
+        };
+        return format!(
+            "{}\nDot · {state}\n{}\n{session_count} {}",
+            plan.title,
+            project.path,
+            count_label(session_count as i64, "chat"),
+        );
+    }
     if project.bot_profile.is_some() {
         let gateway = if project.bot_gateway_running {
             "running"

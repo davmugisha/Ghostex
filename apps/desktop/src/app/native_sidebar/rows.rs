@@ -13,16 +13,17 @@ impl GhostexGpuiApp {
     /// CDXC:Bots 2026-09-27 DECISION:
     /// User: New Session under a bot starts a session with that bot, the same launch as its "+", so it opens in chat or terminal per the agent-interface setting instead of a plain terminal.
     ///
-    /// The "New Session" row of a group with no sessions: a project's opens a terminal.
+    /// The "New Session" row of a group with no sessions: a project's opens a terminal. A dot's
+    /// ("New chat") starts a chat with the dot, the same launch as its "+".
     fn start_native_sidebar_empty_group_session(
         &mut self,
         group_id: &str,
-        is_bot: bool,
+        launch_action: Option<&'static str>,
         cx: &mut gpui::Context<Self>,
     ) {
-        if is_bot {
+        if let Some(action) = launch_action {
             self.dispatch_native_sidebar_ui(
-                json!({"type": "projectAction", "action": "bot", "groupId": group_id}),
+                json!({"type": "projectAction", "action": action, "groupId": group_id}),
                 cx,
             );
         } else {
@@ -62,7 +63,14 @@ impl GhostexGpuiApp {
                         group.sessions.is_empty() && group.project_context.is_some(),
                         |column| {
                             let id = group.group_id.clone();
-                            let is_bot = group.bot_gateway_running().is_some();
+                            let is_dot = group.dot_status().is_some();
+                            let launch_action = if is_dot {
+                                Some("dot")
+                            } else if group.bot_gateway_running().is_some() {
+                                Some("bot")
+                            } else {
+                                None
+                            };
                             column.child(
                                 div()
                                     .id(format!("native-empty-project-{id}"))
@@ -74,12 +82,14 @@ impl GhostexGpuiApp {
                                     .rounded(px(5.0 * scale))
                                     .hover(|row| row.bg(appearance.hover))
                                     .relative()
-                                    .child("New Session")
+                                    .child(if is_dot { "New chat" } else { "New Session" })
                                     .sidebar_drop_target("session-group", id.clone(), None, cx)
                                     .on_click(cx.listener(move |app, _, _, cx| {
                                         cx.stop_propagation();
                                         app.start_native_sidebar_empty_group_session(
-                                            &id, is_bot, cx,
+                                            &id,
+                                            launch_action,
+                                            cx,
                                         );
                                     })),
                             )

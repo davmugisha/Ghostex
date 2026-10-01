@@ -146,6 +146,7 @@ pub(crate) fn titlebar_mode_view_tab_hidden_settings_key(
         TitlebarMode::Manage => Some(DOCS_VIEW_TAB_HIDDEN_SETTINGS_KEY),
         TitlebarMode::Terminal => Some(TERMINAL_VIEW_TAB_HIDDEN_SETTINGS_KEY),
         TitlebarMode::BotFeed => Some(BOT_AUTOMATIONS_HIDDEN_SETTINGS_KEY),
+        TitlebarMode::OpenDots => Some(OPEN_DOTS_HIDDEN_SETTINGS_KEY),
         TitlebarMode::Agents | TitlebarMode::Extension(_) => None,
     }
 }
@@ -166,6 +167,7 @@ pub(crate) fn gpui_titlebar_mode_plugin_display_name(mode: TitlebarMode) -> &'st
         TitlebarMode::Manage => "Files",
         TitlebarMode::Terminal => "Terminal",
         TitlebarMode::BotFeed => "Automations",
+        TitlebarMode::OpenDots => "OpenDots",
         TitlebarMode::Extension(id) => id.as_str(),
     }
 }
@@ -188,6 +190,7 @@ fn titlebar_mode_required_hidden_settings_key(mode: TitlebarMode) -> Option<&'st
 /// A view whose switch is off until the user turns it on, so a settings file without the key hides it.
 fn titlebar_mode_hidden_by_default(mode: TitlebarMode) -> bool {
     mode == TitlebarMode::BotFeed
+        || mode == TitlebarMode::OpenDots
         || mode
             .website_provider()
             .is_some_and(|provider| provider.hidden_by_default)

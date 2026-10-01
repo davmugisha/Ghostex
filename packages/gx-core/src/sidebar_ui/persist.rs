@@ -226,15 +226,15 @@ fn normalize_collapse_state(state: Option<&Value>) -> SidebarCollapseState {
 /// Where the collapse envelope keeps the sidebar mode, beside `selectedSpaceIdBySectionKey`.
 const SIDEBAR_MODE_KEY: &str = "sidebarMode";
 
-/// Projects is the absent key, so an envelope of a user who never opened Bots is byte-identical to
-/// the one a build without Bots writes.
+/// Projects is the absent key, so an envelope of a user who never opened Bots or Dots is
+/// byte-identical to the one a build without them writes.
 pub(super) fn write_sidebar_mode(object: &mut Map<String, Value>, mode: SidebarMode) {
     match mode {
         SidebarMode::Projects => {
             object.remove(SIDEBAR_MODE_KEY);
         }
-        SidebarMode::Bots => {
-            object.insert(SIDEBAR_MODE_KEY.to_string(), Value::from("bots"));
+        SidebarMode::Bots | SidebarMode::Dots => {
+            object.insert(SIDEBAR_MODE_KEY.to_string(), Value::from(mode.as_str()));
         }
     }
 }

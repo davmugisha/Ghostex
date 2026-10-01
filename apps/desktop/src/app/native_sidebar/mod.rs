@@ -7,6 +7,9 @@ mod bots;
 mod collections;
 mod decorations;
 mod disclosure;
+pub(crate) mod dot_face;
+mod dots;
+mod dots_host;
 pub(crate) mod drag;
 mod drag_source;
 mod empty;
@@ -19,6 +22,7 @@ mod menu_state;
 pub(crate) mod menus;
 pub(crate) mod model;
 pub(crate) mod navigation;
+mod open_dots_row;
 #[cfg(target_os = "macos")]
 mod pointer;
 mod project_header;

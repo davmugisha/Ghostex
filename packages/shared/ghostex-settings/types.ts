@@ -389,6 +389,8 @@ export type ghostexSettings = {
   botsHidden: boolean;
   /** The Automations feed of every Hermes cron run, inverted like every Official switch; it needs Bots. */
   botAutomationsHidden: boolean;
+  /** OpenDots, personal agents shown as the sidebar's Dots Space, inverted like every Official switch. */
+  openDotsHidden: boolean;
   /**
    * Quick-access switches affect only the matching right-side titlebar button.
    * The menus and commands remain available through their other entry points.

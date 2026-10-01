@@ -15,6 +15,7 @@ pub(crate) mod helpers;
 pub(crate) mod hotkeys;
 pub(crate) mod model;
 pub(crate) mod native_chat;
+pub(crate) mod native_open_dots;
 pub(crate) mod native_sidebar;
 #[allow(dead_code, unused_imports)]
 pub(crate) mod native_app_modal_lifecycle {

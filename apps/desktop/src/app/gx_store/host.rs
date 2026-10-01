@@ -73,6 +73,9 @@ pub(super) struct PumpOutcome {
     /// a reconnect to a restarted daemon does while the machine stays loaded, so
     /// `local_reloaded` alone never reports it.
     pub(super) local_snapshot: bool,
+    /// gxserver said OpenDots changed (`openDotsChanged`, payload-less): the OpenDots view reads
+    /// its snapshot again.
+    pub(super) open_dots_changed: bool,
 }
 
 /// A snapshot frame from this computer's own socket.
@@ -85,6 +88,16 @@ fn is_local_snapshot(event: &Event) -> bool {
                 **frame,
                 ServerEvent::PresentationSnapshot(_) | ServerEvent::PresentationSnapshotCurrent(_)
             )
+    )
+}
+
+/// An `openDotsChanged` frame from this computer's own socket (gx-core passes it on as unknown).
+fn is_open_dots_changed(event: &Event) -> bool {
+    use ghostex_gx_core::protocol::ServerEvent;
+    matches!(
+        event,
+        Event::Frame { machine: MachineId::Local, frame }
+            if matches!(&**frame, ServerEvent::Unknown { event_type } if event_type == "openDotsChanged")
     )
 }
 
@@ -215,6 +228,7 @@ impl GxStoreHost {
         }
         let mut events = Vec::with_capacity(outputs.len());
         let mut local_snapshot = false;
+        let mut open_dots_changed = false;
         for output in outputs {
             match output {
                 ClientOutput::Event(event) => {
@@ -222,6 +236,7 @@ impl GxStoreHost {
                         self.note_connection(update);
                     }
                     local_snapshot |= is_local_snapshot(&event);
+                    open_dots_changed |= is_open_dots_changed(&event);
                     events.push(event);
                 }
                 ClientOutput::Diagnostic(diagnostic) => {
@@ -269,6 +284,7 @@ impl GxStoreHost {
                 .iter()
                 .any(MachineId::is_local),
             local_snapshot,
+            open_dots_changed,
         };
         self.run_effects(output.effects);
         outcome
@@ -481,6 +497,9 @@ impl GhostexGpuiApp {
         let outcome = self.gx_store.pump();
         if outcome.local_reloaded || outcome.local_snapshot {
             self.gx_store_presentation_ready(cx);
+        }
+        if outcome.open_dots_changed {
+            self.native_open_dots_changed(cx);
         }
         let renderer_commands = std::mem::take(&mut self.gx_store.pending_renderer_commands);
         if !renderer_commands.is_empty() {

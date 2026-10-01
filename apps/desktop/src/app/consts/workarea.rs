@@ -243,6 +243,9 @@ pub(crate) const BOTS_HIDDEN_SETTINGS_KEY: &str = "botsHidden";
 
 pub(crate) const BOT_AUTOMATIONS_HIDDEN_SETTINGS_KEY: &str = "botAutomationsHidden";
 
+/// OpenDots' Official extension switch (inverted: only `false` shows the view).
+pub(crate) const OPEN_DOTS_HIDDEN_SETTINGS_KEY: &str = "openDotsHidden";
+
 pub(crate) const DOCS_VIEW_TAB_HIDDEN_SETTINGS_KEY: &str = "docsViewTabHidden";
 
 pub(crate) const TERMINAL_VIEW_TAB_HIDDEN_SETTINGS_KEY: &str = "terminalViewTabHidden";

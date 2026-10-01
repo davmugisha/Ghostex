@@ -444,6 +444,14 @@ const SUPPLEMENTAL_SETTING_ROWS: Record<string, SupplementalRow> = {
       'Stop offering Bot automations, the Automations row in the Bots sidebar that opens a feed of every Hermes cron run. Hidden by default; needs Bots.',
     title: 'Hide Bot automations',
   },
+  openDotsHidden: {
+    ...EXTENSIONS_TAB,
+    section: 'official',
+    sectionTitle: 'Built-in',
+    subtitle:
+      'Stop offering OpenDots, personal agents with their own browser, memory, rules and routines, shown as the Dots Space in the sidebar. Hidden by default.',
+    title: 'Hide OpenDots',
+  },
   tipsAndTricksTitlebarButtonHidden: {
     ...viewRows,
     subtitle: 'Stop offering the Tips & Tricks page, so it is missing from the header ⋯ menu and the view picker.',

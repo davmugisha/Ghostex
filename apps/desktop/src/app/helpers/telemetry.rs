@@ -81,7 +81,10 @@ pub(crate) fn gpui_telemetry_surface_for_titlebar_mode(
         TitlebarMode::Kanban => Some(GpuiTelemetrySurface::Kanban),
         TitlebarMode::Automate => Some(GpuiTelemetrySurface::Automate),
         TitlebarMode::Manage => Some(GpuiTelemetrySurface::Docs),
-        TitlebarMode::Terminal | TitlebarMode::BotFeed | TitlebarMode::Extension(_) => None,
+        TitlebarMode::Terminal
+        | TitlebarMode::BotFeed
+        | TitlebarMode::OpenDots
+        | TitlebarMode::Extension(_) => None,
     }
 }
 

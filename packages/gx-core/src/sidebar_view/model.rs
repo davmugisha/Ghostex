@@ -910,6 +910,18 @@ fn project_context(
         bot_profile: meta.bot_profile(project_id).map(str::to_string),
         bot_gateway_running: project.bot_gateway_running == Some(true),
         bot_runs_today: project.bot_runs_today.unwrap_or_default(),
+        dot_id: meta.dot_id(project_id).map(str::to_string),
+        dot_look: meta
+            .dot_id(project_id)
+            .map(|_| crate::open_dots::DotLook::from_value(project.dot_look.as_ref())),
+        dot_agent_id: project
+            .dot_agent_id
+            .as_deref()
+            .map(str::trim)
+            .filter(|agent_id| !agent_id.is_empty())
+            .map(str::to_string),
+        dot_paused: project.dot_paused == Some(true),
+        dot_needs_you: project.dot_needs_you.unwrap_or_default(),
     })
 }
 

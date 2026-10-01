@@ -25,6 +25,14 @@ pub(crate) struct NativeSidebarSnapshot {
     pub(crate) automations_row: bool,
     /// The runs every bot delivered today, drawn on the Automations row.
     pub(crate) automations_today: u64,
+    /// The OpenDots extension is on, so the Dots button is drawn.
+    pub(crate) dots_enabled: bool,
+    /// The list shows the dots rather than the projects.
+    pub(crate) dots_mode: bool,
+    /// The Dots list starts with the pinned OpenDots row.
+    pub(crate) open_dots_row: bool,
+    /// Every dot's approvals and questions waiting for the user, badged on the OpenDots row.
+    pub(crate) dots_needs_you: u64,
     pub(crate) collections: Vec<NativeSidebarCollection>,
     pub(crate) order: Vec<NativeSidebarOrderItem>,
     pub(crate) more_menu: Value,

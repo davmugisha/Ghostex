@@ -119,7 +119,7 @@ impl SidebarView {
         group_ids: &[String],
         collections: &CollectionsState,
     ) -> Vec<CollectionItem> {
-        if self.bots_mode {
+        if self.bots_mode || self.dots_mode {
             return group_ids
                 .iter()
                 .map(|group_id| CollectionItem::Project {

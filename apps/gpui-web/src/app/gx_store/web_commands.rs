@@ -287,6 +287,8 @@ impl GhostexGpuiApp {
         cx: &mut gpui::Context<Self>,
     ) {
         self.open_session = Some(session.clone());
+        // A session opened from anywhere takes the work area back from the OpenDots view.
+        self.web_host.open_dots.showing = false;
         self.web_report_shown_sessions(cx);
         let chat_view_unavailable =
             ghostex_gx_core::session_chat_view_unavailable(&self.gx_store.core, &session);

@@ -54,9 +54,12 @@ pub(crate) fn assemble(input: AssembleInput<'_>) -> SidebarView {
         .collect();
     // Both are asked once per group per Space, so the lookup is a map rather than a scan.
     let mut projects_by_group: BTreeMap<&str, (&str, Option<&str>)> = BTreeMap::new();
-    // The bot groups, which only Bots mode draws and no Space shows or counts.
+    // The bot groups, which only Bots mode draws and no Space shows or counts, and the dot groups,
+    // which only Dots mode draws and no Space shows or counts either.
     let mut bot_groups: BTreeSet<&str> = BTreeSet::new();
     let mut bot_runs_today = 0;
+    let mut dot_groups: BTreeSet<&str> = BTreeSet::new();
+    let mut dots_needs_you = 0;
     for plan in input.plans {
         if let Some(project) = &plan.project {
             projects_by_group.insert(
@@ -69,7 +72,10 @@ pub(crate) fn assemble(input: AssembleInput<'_>) -> SidebarView {
                         .map(|worktree| worktree.parent_project_id.as_str()),
                 ),
             );
-            if project.bot_profile.is_some() {
+            if project.dot_id.is_some() {
+                dot_groups.insert(plan.group_id.as_str());
+                dots_needs_you += project.dot_needs_you;
+            } else if project.bot_profile.is_some() {
                 bot_groups.insert(plan.group_id.as_str());
                 bot_runs_today += project.bot_runs_today;
             }
@@ -110,8 +116,21 @@ pub(crate) fn assemble(input: AssembleInput<'_>) -> SidebarView {
             collection_id: collection_id_by_project.get(project_id).cloned(),
         })
     };
-    let bots_mode = effective_sidebar_mode(input.settings, input.ui) == SidebarMode::Bots;
-    let is_bot_group = |group_id: &str| bot_groups.contains(group_id);
+    let mode = effective_sidebar_mode(input.settings, input.ui);
+    let bots_mode = mode == SidebarMode::Bots;
+    let dots_mode = mode == SidebarMode::Dots;
+    // The mode whose list a group belongs to.
+    let mode_of_group = |group_id: &str| {
+        if dot_groups.contains(group_id) {
+            SidebarMode::Dots
+        } else if bot_groups.contains(group_id) {
+            SidebarMode::Bots
+        } else {
+            SidebarMode::Projects
+        }
+    };
+    // Bots and dots both belong to no Space.
+    let is_spaceless_group = |group_id: &str| mode_of_group(group_id) != SidebarMode::Projects;
 
     // A section has a Space row only when the setting is on and its daemon published a Space
     // document at all; an older daemon has no Spaces and is never filtered.
@@ -131,9 +150,9 @@ pub(crate) fn assemble(input: AssembleInput<'_>) -> SidebarView {
                 .map(String::as_str),
         )
     });
-    // Bots belong to no Space: a Space only ever shows and counts projects.
+    // Bots and dots belong to no Space: a Space only ever shows and counts projects.
     let shows_group = |selection: &SpaceSelection, group_id: &str| -> bool {
-        if is_bot_group(group_id) {
+        if is_spaceless_group(group_id) {
             return false;
         }
         let project = space_project_of_group(group_id);
@@ -158,7 +177,7 @@ pub(crate) fn assemble(input: AssembleInput<'_>) -> SidebarView {
             .is_some_and(GroupBuild::contains_focused_session)
     });
     let active_space_id = match (&selection, active_group_id) {
-        (Some(selection), Some(group_id)) if !is_bot_group(group_id) => {
+        (Some(selection), Some(group_id)) if !is_spaceless_group(group_id) => {
             let project = space_project_of_group(group_id);
             Some(space_for_group(
                 &spaces_state,
@@ -228,8 +247,8 @@ pub(crate) fn assemble(input: AssembleInput<'_>) -> SidebarView {
                     }
                 }
             }
-            // The Hermes button is the selected slot while Bots is showing.
-            row.selected = !bots_mode && selection.space_id() == row.id;
+            // The Hermes or Dots button is the selected slot while Bots or Dots is showing.
+            row.selected = mode == SidebarMode::Projects && selection.space_id() == row.id;
             row.contains_active_session = active_space_id.as_deref() == Some(row.id.as_str());
             row.working_count = working_count;
             row.attention_count = attention_count;
@@ -246,10 +265,10 @@ pub(crate) fn assemble(input: AssembleInput<'_>) -> SidebarView {
         let Some(build) = input.builds.get(&plan.group_id) else {
             continue;
         };
-        if is_bot_group(&plan.group_id) != bots_mode {
+        if mode_of_group(&plan.group_id) != mode {
             continue;
         }
-        if let Some(selection) = selection.as_ref().filter(|_| !bots_mode) {
+        if let Some(selection) = selection.as_ref().filter(|_| mode == SidebarMode::Projects) {
             if !shows_group(selection, &plan.group_id) {
                 continue;
             }
@@ -275,8 +294,8 @@ pub(crate) fn assemble(input: AssembleInput<'_>) -> SidebarView {
         .collect();
     let mut collections: Vec<CollectionView> = Vec::new();
     let mut order: Vec<OrderItem> = Vec::new();
-    // Collections group projects; the bots are one flat list.
-    let collection_items = if bots_mode {
+    // Collections group projects; the bots and the dots are each one flat list.
+    let collection_items = if bots_mode || dots_mode {
         rendered_ids
             .iter()
             .map(|group_id| CollectionItem::Project {
@@ -407,6 +426,7 @@ pub(crate) fn assemble(input: AssembleInput<'_>) -> SidebarView {
             input.ui.selected_machine_id,
             match &selection {
                 _ if bots_mode => "bots",
+                _ if dots_mode => "dots",
                 Some(selection) => selection.space_id(),
                 None => "all",
             }
@@ -418,16 +438,25 @@ pub(crate) fn assemble(input: AssembleInput<'_>) -> SidebarView {
         bots_mode,
         automations_row: bots_mode && input.settings.bot_automations_enabled,
         automations_today: bot_runs_today,
+        dots_enabled: input.settings.dots_enabled,
+        dots_mode,
+        open_dots_row: dots_mode,
+        dots_needs_you,
         groups,
         collections,
         order,
         empty_state: {
             let empty = empty_state(&input, selection.as_ref());
-            // Bots changes only the copy of a loaded, empty list; loading and a load failure read
-            // the same in both modes.
+            // Bots and Dots change only the copy of a loaded, empty list; loading and a load
+            // failure read the same in every mode.
             if bots_mode && !empty.loading && !empty.error {
                 EmptyState {
                     copy: "No Hermes profiles found.".to_string(),
+                    ..EmptyState::default()
+                }
+            } else if dots_mode && !empty.loading && !empty.error {
+                EmptyState {
+                    copy: "No dots yet. Make one from the OpenDots row.".to_string(),
                     ..EmptyState::default()
                 }
             } else {

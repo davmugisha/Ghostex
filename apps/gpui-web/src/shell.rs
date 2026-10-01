@@ -16,6 +16,9 @@ const WEB_DISABLED_REASON: &str = "Not available in the browser yet";
 
 impl GhostexGpuiApp {
     fn open_session_titles(&self) -> Option<(String, String)> {
+        if self.open_dots_view_showing() {
+            return Some(("Ghostex".to_string(), "OpenDots".to_string()));
+        }
         let key = self.open_session.as_ref()?;
         self.gx_store.sidebar_view().groups.iter().find_map(|group| {
             group
@@ -145,14 +148,16 @@ impl Render for GhostexGpuiApp {
         let sidebar = (!self.sidebar_collapsed).then(|| self.render_native_sidebar(window, cx));
         let status = self.gx_store.status.clone();
         let open = self.open_session.clone();
-        let shows_terminal = open.as_ref().is_some_and(|session| self.web_shows_terminal(session));
-        let surface: Option<AnyElement> = open.as_ref().and_then(|session| {
+        let open_dots = self.render_web_open_dots(window, cx);
+        let shows_terminal = open_dots.is_none()
+            && open.as_ref().is_some_and(|session| self.web_shows_terminal(session));
+        let surface: Option<AnyElement> = open_dots.or_else(|| open.as_ref().and_then(|session| {
             if shows_terminal {
                 self.terminals.get(session).map(|view| view.clone().into_any_element())
             } else {
                 self.native_chats.get(session).map(|(_, view)| view.clone().into_any_element())
             }
-        });
+        }));
         let header = self.render_workarea_header(cx);
         let terminal_bar = (shows_terminal && surface.is_some())
             .then(|| self.render_terminal_action_bar(cx));

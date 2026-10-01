@@ -25,6 +25,9 @@ use super::text::transcript_agent;
 /// Edit SOUL and Edit config always open that bot's own `SOUL.md` and `config.yaml`, in Ghostex's built-in Code view under the bot.
 /// They are fixed buttons on every bot row on this computer, not editable or deletable Actions; a remote computer's bot has none, because its file would open on this computer.
 /// Supersedes the 2026-09-26 decision (pinned Actions and "+" only, with seeded `code <file>` Actions).
+///
+/// CDXC:OpenDots 2026-10-01 WHY:
+/// A dot row is not a repo either, so it has exactly the dot's own buttons: Setup and Computer (the OpenDots view on that dot's tab) and one "+" that starts a new chat with the dot's own agent. No git, history, browser, terminal or pinned Actions, and no agent split. A remote computer's dot has only the "+", because the OpenDots view shows this computer's dots.
 pub fn project_header_actions(
     group: &MenuGroup<'_>,
     settings: &SidebarSettings,
@@ -38,6 +41,27 @@ pub fn project_header_actions(
             MenuCommand::command(message::create_session_in_group(group_id)),
         )];
     };
+    if let Some(dot_id) = project.dot_id.as_deref() {
+        let mut actions = Vec::new();
+        if !group.is_remote {
+            for (label, icon, tab) in [
+                ("Setup", "settings", "setup"),
+                ("Computer", "device-desktop", "computer"),
+            ] {
+                actions.push(MenuItem::row(
+                    label,
+                    icon,
+                    MenuCommand::command(message::open_dots_view_on_dot(dot_id, tab)),
+                ));
+            }
+        }
+        actions.push(MenuItem::row(
+            &format!("New chat with {}", group.title),
+            "plus",
+            MenuCommand::project_action(group_id, "dot", None),
+        ));
+        return actions;
+    }
     let mut pinned = Vec::new();
     let project_commands = host
         .project_commands

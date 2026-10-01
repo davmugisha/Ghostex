@@ -141,18 +141,22 @@ impl SectionCollapse {
     }
 }
 
-/// Which projects the sidebar lists: the user's projects, or one row per Hermes profile.
+/// Which projects the sidebar lists: the user's projects, one row per Hermes profile, or one row per dot.
 ///
 /// CDXC:Bots 2026-09-26 DECISION:
 /// User: Bots is a sidebar mode, entered from a Hermes-logo button, off by default.
 /// Projects mode never lists a bot project and Bots mode lists only bot projects, ignoring the Space filter.
 /// The mode is remembered across restarts beside the selected Space.
+///
+/// CDXC:OpenDots 2026-10-01 WHY:
+/// OpenDots is a third mode, `dots`, built exactly like Bots: Projects and Bots never list a dot project, Dots lists only dot projects, flat, ignoring Spaces and collections, and each mode falls back to Projects while its extension is off.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum SidebarMode {
     #[default]
     Projects,
     Bots,
+    Dots,
 }
 
 impl SidebarMode {
@@ -160,7 +164,17 @@ impl SidebarMode {
         match value {
             "projects" => Some(SidebarMode::Projects),
             "bots" => Some(SidebarMode::Bots),
+            "dots" => Some(SidebarMode::Dots),
             _ => None,
+        }
+    }
+
+    /// The word the mode is stored and sent as.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            SidebarMode::Projects => "projects",
+            SidebarMode::Bots => "bots",
+            SidebarMode::Dots => "dots",
         }
     }
 }
@@ -187,7 +201,7 @@ pub struct SidebarCollapseState {
     /// something richer: a value the sidebar writes that often has to be cheap to compare.
     pub recent_sessions_by_space: BTreeMap<String, BTreeMap<String, Vec<String>>>,
     /// The mode the user left the sidebar in. Read through [`effective_sidebar_mode`], which falls
-    /// back to Projects while Bots is switched off.
+    /// back to Projects while that mode's extension (Bots, OpenDots) is switched off.
     pub sidebar_mode: SidebarMode,
 }
 
@@ -273,6 +287,8 @@ pub struct SidebarSettings {
     pub bots_enabled: bool,
     /// The Bot automations extension is on (`botAutomationsHidden` is false). It needs Bots too.
     pub bot_automations_enabled: bool,
+    /// The OpenDots extension is on (`openDotsHidden` is false), so the sidebar offers its Dots mode.
+    pub dots_enabled: bool,
 }
 
 impl Default for SidebarSettings {
@@ -296,6 +312,7 @@ impl Default for SidebarSettings {
             show_less_for_expanded_project_jumps: false,
             bots_enabled: false,
             bot_automations_enabled: false,
+            dots_enabled: false,
         }
     }
 }
@@ -374,6 +391,7 @@ impl SidebarSettings {
                 "botAutomationsHidden",
                 !defaults.bot_automations_enabled,
             ),
+            dots_enabled: !boolean("openDotsHidden", !defaults.dots_enabled),
         }
     }
 
@@ -521,15 +539,15 @@ pub struct SidebarInputs {
     pub host: SidebarHostInputs,
 }
 
-/// The mode the list is drawn in: the remembered one while Bots is on, Projects otherwise, so
-/// switching Bots off puts the sidebar back to exactly what it was.
+/// The mode the list is drawn in: the remembered one while its extension (Bots, OpenDots) is on,
+/// Projects otherwise, so switching either off puts the sidebar back to exactly what it was.
 pub(crate) fn effective_sidebar_mode(
     settings: &SidebarSettings,
     ui: &SidebarUiState,
 ) -> SidebarMode {
-    if settings.bots_enabled {
-        ui.collapse.sidebar_mode
-    } else {
-        SidebarMode::Projects
+    match ui.collapse.sidebar_mode {
+        SidebarMode::Bots if settings.bots_enabled => SidebarMode::Bots,
+        SidebarMode::Dots if settings.dots_enabled => SidebarMode::Dots,
+        _ => SidebarMode::Projects,
     }
 }

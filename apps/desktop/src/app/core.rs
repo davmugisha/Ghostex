@@ -569,6 +569,8 @@ pub struct GhostexGpuiApp {
     pub(crate) native_automate: Option<Entity<crate::app::native_automate::NativeAutomateView>>,
     /// The Bot automations feed page, cached like Automate's (`app/native_bot_feed/host.rs`).
     pub(crate) native_bot_feed: Option<Entity<crate::app::native_bot_feed::NativeBotFeedView>>,
+    /// The OpenDots view, cached like the feed's (`app/native_open_dots/host.rs`).
+    pub(crate) native_open_dots: Option<Entity<crate::app::native_open_dots::NativeOpenDotsView>>,
     pub(crate) new_thread_picker_window: Option<WindowHandle<Root>>,
     pub(crate) new_thread_picker: Option<Entity<GpuiNewThreadPickerWindow>>,
     pub(crate) new_thread_picker_visible: bool,

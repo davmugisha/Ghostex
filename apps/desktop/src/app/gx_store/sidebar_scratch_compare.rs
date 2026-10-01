@@ -87,6 +87,13 @@ pub(super) fn compare_views(
             && incremental.automations_today == scratch.automations_today,
     );
     top(
+        "dotsMode",
+        incremental.dots_enabled == scratch.dots_enabled
+            && incremental.dots_mode == scratch.dots_mode
+            && incremental.open_dots_row == scratch.open_dots_row
+            && incremental.dots_needs_you == scratch.dots_needs_you,
+    );
+    top(
         "collections",
         incremental.collections == scratch.collections,
     );

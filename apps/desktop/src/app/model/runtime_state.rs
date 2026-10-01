@@ -414,7 +414,7 @@ impl ProjectScopedWorkareaAvailability {
         */
         match mode {
             // App-wide: the feed reads Hermes, not the project, so every context can show it.
-            TitlebarMode::Agents | TitlebarMode::BotFeed => true,
+            TitlebarMode::Agents | TitlebarMode::BotFeed | TitlebarMode::OpenDots => true,
             TitlebarMode::Extension(_) => self.project_context.has_project_scoped_workareas(),
             TitlebarMode::Source => self.project_features.source,
             TitlebarMode::Browser | TitlebarMode::Kanban | TitlebarMode::Automate => {
@@ -522,7 +522,8 @@ impl ProjectWorkareaCefSurfaceSlotKey {
             TitlebarMode::Agents
             | TitlebarMode::Browser
             | TitlebarMode::Terminal
-            | TitlebarMode::BotFeed => {
+            | TitlebarMode::BotFeed
+            | TitlebarMode::OpenDots => {
                 return None;
             }
         })

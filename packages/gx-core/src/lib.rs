@@ -29,6 +29,7 @@ pub mod indicators;
 mod keys;
 pub mod navigation_history;
 mod notification_feed;
+pub mod open_dots;
 mod overlay;
 mod presentation_store;
 mod project_activation;

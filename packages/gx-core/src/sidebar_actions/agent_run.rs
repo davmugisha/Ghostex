@@ -33,10 +33,11 @@ use crate::sidebar_view::SidebarView;
 use super::plan::{ActionEffect, SidebarActionPlan};
 use super::resolve::text_field;
 
-/// Whether this renderer command is the launcher's run or a bot's "+", without resolving anything.
+/// Whether this renderer command is the launcher's run, a bot's "+" or a dot's "+", without
+/// resolving anything.
 pub fn owns_agent_run_command(command: &Value) -> bool {
     text_field(command, "type") == Some("projectAction")
-        && matches!(text_field(command, "action"), Some("agent" | "bot"))
+        && matches!(text_field(command, "action"), Some("agent" | "bot" | "dot"))
 }
 
 /// What the run does. `Some(nothing)` when the group is not a drawn project, which is the
@@ -61,6 +62,16 @@ pub fn plan_agent_run(view: &SidebarView, command: &Value) -> Option<SidebarActi
         }
         return Some(SidebarActionPlan::one(ActionEffect::SidebarHostMessage {
             message: json!({ "type": "runSidebarBot", "groupId": group_id }),
+        }));
+    }
+    if text_field(command, "action") == Some("dot") {
+        // A new chat with the dot: its own agent (the host reads `dotAgentId` off the list it
+        // draws), never the launcher's, which stays as it was.
+        if project.dot_id.is_none() {
+            return Some(SidebarActionPlan::nothing());
+        }
+        return Some(SidebarActionPlan::one(ActionEffect::SidebarHostMessage {
+            message: json!({ "type": "runSidebarDot", "groupId": group_id }),
         }));
     }
     // `if (!command.agentId)`: an empty string is falsy too.

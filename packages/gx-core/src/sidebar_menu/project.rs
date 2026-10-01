@@ -34,6 +34,9 @@ pub struct ProjectMenuInput<'a> {
 /// It has no project group or Space rows, because bots belong to no Space and Bots lists them flat, so those rows did nothing.
 /// Every other project's menu stays as it was.
 /// Supersedes the 2026-09-26 decision, which kept the group and Space rows on a bot.
+///
+/// CDXC:OpenDots 2026-10-01 WHY:
+/// A dot's menu starts with Open setup and Pause or Resume (this computer's dots only, because the OpenDots view and its calls are this computer's), has no project group or Space rows (Dots lists them flat, like Bots), and has no Close Project: a dot's project lives as long as the dot, and deleting a dot is on its Setup page, where its records go with it.
 pub fn project_menu(input: &ProjectMenuInput<'_>) -> Vec<MenuItem> {
     let group = input.group;
     let group_id = group.group_id;
@@ -83,18 +86,39 @@ pub fn project_menu(input: &ProjectMenuInput<'_>) -> Vec<MenuItem> {
         return menu;
     };
 
-    let mut menu = vec![
-        MenuItem::row(
-            "Copy Path",
-            "copy",
-            MenuCommand::command(message::copy_project_path(group_id)),
-        ),
-        MenuItem::row(
-            "Open Folder",
-            "folder-open",
-            MenuCommand::command(message::open_project_in_finder(group_id)),
-        ),
-    ];
+    let dot_id = project.dot_id.as_deref();
+    let mut menu = Vec::new();
+    if let Some(dot_id) = dot_id.filter(|_| !group.is_remote) {
+        menu.push(MenuItem::row(
+            "Open setup",
+            "settings",
+            MenuCommand::command(message::open_dots_view_on_dot(dot_id, "setup")),
+        ));
+        menu.push(MenuItem::row(
+            if project.dot_paused {
+                "Resume"
+            } else {
+                "Pause"
+            },
+            if project.dot_paused {
+                "player-play"
+            } else {
+                "player-pause"
+            },
+            MenuCommand::command(message::set_dot_paused(dot_id, !project.dot_paused)),
+        ));
+        menu.push(MenuItem::separator());
+    }
+    menu.push(MenuItem::row(
+        "Copy Path",
+        "copy",
+        MenuCommand::command(message::copy_project_path(group_id)),
+    ));
+    menu.push(MenuItem::row(
+        "Open Folder",
+        "folder-open",
+        MenuCommand::command(message::open_project_in_finder(group_id)),
+    ));
     if project.bot_profile.is_some() && !group.is_remote && !input.open_targets.is_empty() {
         menu.push(MenuItem::submenu(
             "Open in",
@@ -148,7 +172,7 @@ pub fn project_menu(input: &ProjectMenuInput<'_>) -> Vec<MenuItem> {
             MenuCommand::command(message::copy_project_remote_url(remote_url)),
         ));
     }
-    if project.bot_profile.is_none() {
+    if project.bot_profile.is_none() && dot_id.is_none() {
         menu.extend(project_membership_menu(
             group_id,
             Some(project.project_id.as_str()),
@@ -208,14 +232,16 @@ pub fn project_menu(input: &ProjectMenuInput<'_>) -> Vec<MenuItem> {
         .with_disabled(!has_inactive)
         .with_danger(),
     );
-    menu.push(
-        MenuItem::row(
-            "Close Project",
-            "x",
-            MenuCommand::command(message::close_project(group_id)),
-        )
-        .with_disabled(!group.can_remove_project && !group.is_remote)
-        .with_danger(),
-    );
+    if dot_id.is_none() {
+        menu.push(
+            MenuItem::row(
+                "Close Project",
+                "x",
+                MenuCommand::command(message::close_project(group_id)),
+            )
+            .with_disabled(!group.can_remove_project && !group.is_remote)
+            .with_danger(),
+        );
+    }
     menu
 }

@@ -331,6 +331,7 @@ pub(crate) fn project_editor_auto_sleep_duration(
         TitlebarMode::Agents
         | TitlebarMode::Terminal
         | TitlebarMode::BotFeed
+        | TitlebarMode::OpenDots
         | TitlebarMode::Extension(_) => {
             return None;
         }

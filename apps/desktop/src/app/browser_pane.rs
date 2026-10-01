@@ -307,7 +307,8 @@ impl GhostexGpuiApp {
                     TitlebarMode::Agents
                     | TitlebarMode::Browser
                     | TitlebarMode::Terminal
-                    | TitlebarMode::BotFeed => {
+                    | TitlebarMode::BotFeed
+                    | TitlebarMode::OpenDots => {
                         return false;
                     }
                 };

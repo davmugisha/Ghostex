@@ -164,6 +164,7 @@ pub(crate) fn official_icon(id: &str) -> &'static str {
         "docs" => "modals/settings/file-text.svg",
         "extensionsButton" => "modals/settings/puzzle.svg",
         "help" => "modals/settings/help-circle.svg",
+        "openDots" => "modals/settings/circles.svg",
         "notifications" => "modals/settings/bell.svg",
         "openIn" => icon::FOLDER_OPEN,
         "resources" | "cef" => "modals/settings/device-desktop.svg",

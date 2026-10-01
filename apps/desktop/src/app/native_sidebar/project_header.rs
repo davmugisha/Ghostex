@@ -55,12 +55,18 @@ impl GhostexGpuiApp {
             .and_then(super::images::sidebar_image);
         // Set only on a bot's row, which draws a gateway dot instead of git stats and counts.
         let bot_gateway_running = group.bot_gateway_running();
+        // Set only on a dot's row, which draws the dot's face instead of the project icon and a
+        // status dot instead of git stats and counts (dots.rs).
+        let dot_status = group.dot_status();
+        let dot_face = group.dot_face(DOT_FACE_SIZE * scale);
+        let icon_image = dot_face.clone().or(icon_image);
         let dragged = SidebarDrag {
             kind: "group",
             preview: super::drag::SidebarDragPreview::Row(super::row_drag::RowDragPreview {
                 identity: super::row_drag::RowDragIdentity::Project {
                     image: icon_image.clone(),
-                    show_icon: hud["settings"]["showProjectIcons"].as_bool() != Some(false),
+                    show_icon: dot_face.is_some()
+                        || hud["settings"]["showProjectIcons"].as_bool() != Some(false),
                 },
                 appearance: appearance.clone(),
                 width: px(0.0),
@@ -177,9 +183,15 @@ impl GhostexGpuiApp {
                     ),
             )
             .when(
-                hud["settings"]["showProjectIcons"].as_bool() != Some(false),
+                dot_face.is_some() || hud["settings"]["showProjectIcons"].as_bool() != Some(false),
                 |row| {
                     row.child(match icon_image {
+                        // The face is the dot itself, so it shows even with project icons off.
+                        Some(face) if dot_face.is_some() => img(face)
+                            .size(px(DOT_FACE_SIZE * scale))
+                            .mx(px((16.0 - DOT_FACE_SIZE) / 2.0 * scale))
+                            .flex_shrink_0()
+                            .into_any_element(),
                         _ if bot_gateway_running.is_some() => letter_tile(
                             &group.title,
                             super::bots::hermes_color(),
@@ -208,7 +220,14 @@ impl GhostexGpuiApp {
             .when_some(bot_gateway_running, |row, running| {
                 row.child(super::bots::bot_gateway_dot(running, appearance))
             })
-            .when(!hovered && bot_gateway_running.is_none(), |row| {
+            .when_some(dot_status, |row, status| {
+                row.child(super::dots::dot_status_badge(
+                    status,
+                    group.dot_needs_you(),
+                    appearance,
+                ))
+            })
+            .when(!hovered && bot_gateway_running.is_none() && dot_status.is_none(), |row| {
                 row.children(super::project_status::project_status(
                     group, hud, appearance,
                 ))
@@ -341,6 +360,10 @@ impl GhostexGpuiApp {
             .into_any_element()
     }
 }
+
+/// A dot's face is drawn a little larger than a project icon, centered on the icon's slot, because
+/// the face sits inside its picture with room for feet and accessories.
+const DOT_FACE_SIZE: f32 = 20.0;
 
 /// The first letter of a row's name on a colored square, in the project icon's slot and size.
 fn letter_tile(

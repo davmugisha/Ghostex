@@ -30,6 +30,8 @@ pub(crate) struct ProjectOverlay {
     pub(crate) is_quick_project: bool,
     /// The Hermes profile a bot project stands for (`default` for `HERMES_HOME` itself).
     pub(crate) bot_profile: Option<String>,
+    /// The OpenDots dot a dot project is the home of.
+    pub(crate) dot_id: Option<String>,
     pub(crate) order_index: Option<usize>,
     pub(crate) worktree: Option<WorktreeView>,
 }
@@ -47,6 +49,8 @@ pub(crate) struct ProjectMeta {
     pub(crate) project_order: Vec<String>,
     /// Visible bot projects in sidebar order, which Bots mode lists instead of `project_order`.
     pub(crate) bot_order: Vec<String>,
+    /// Visible dot projects in sidebar order, which Dots mode lists instead of `project_order`.
+    pub(crate) dot_order: Vec<String>,
     /// How many projects the Projects settings page would list; the empty state reads it.
     pub(crate) project_settings_count: usize,
 }
@@ -56,14 +60,22 @@ impl ProjectMeta {
         self.overlays.get(project_id)
     }
 
-    /// Every project that gets a project group, code projects first, then bots. Both kinds are
-    /// built in either mode; `assemble` draws the kind the mode lists, the way it applies a Space.
+    /// Every project that gets a project group, code projects first, then bots, then dots. Every
+    /// kind is built in every mode; `assemble` draws the kind the mode lists, the way it applies a
+    /// Space.
     pub(crate) fn grouped_project_ids(&self) -> impl Iterator<Item = &String> {
-        self.project_order.iter().chain(&self.bot_order)
+        self.project_order
+            .iter()
+            .chain(&self.bot_order)
+            .chain(&self.dot_order)
     }
 
     pub(crate) fn bot_profile(&self, project_id: &str) -> Option<&str> {
         self.overlay(project_id)?.bot_profile.as_deref()
+    }
+
+    pub(crate) fn dot_id(&self, project_id: &str) -> Option<&str> {
+        self.overlay(project_id)?.dot_id.as_deref()
     }
 }
 
@@ -277,7 +289,15 @@ pub(crate) fn build_project_meta(
         // A bot is an ordinary gxserver project flagged in `launchSettings` (`isBot`, `botProfile`), the same JSON split the Chats projects use, so no schema migration and no `systemKind` value is needed.
         // The presentation row carries the profile (`botProfile`), which every client holds from its first frame.
         let bot_profile = project.bot_profile.clone();
-        if index.is_some() || worktree.is_some() || bot_profile.is_some() {
+        // A dot is flagged the same way (`launchSettings.isDot`, `dotId`), and its row carries
+        // `dotId` (server/src/open_dots/).
+        let dot_id = project
+            .dot_id
+            .as_deref()
+            .map(js_trim)
+            .filter(|dot_id| !dot_id.is_empty())
+            .map(str::to_string);
+        if index.is_some() || worktree.is_some() || bot_profile.is_some() || dot_id.is_some() {
             merge_overlay(
                 &mut meta.overlays,
                 &project.project_id,
@@ -285,6 +305,7 @@ pub(crate) fn build_project_meta(
                     order_index: index,
                     worktree,
                     bot_profile,
+                    dot_id,
                     ..ProjectOverlayPatch::default()
                 },
             );
@@ -332,16 +353,21 @@ pub(crate) fn build_project_meta(
             .filter(|project| is_chat(project, &meta)),
         &meta,
     );
-    let (bots, projects): (Vec<&PresentationProject>, Vec<&PresentationProject>) = visible
+    let (dots, rest): (Vec<&PresentationProject>, Vec<&PresentationProject>) = visible
         .iter()
         .copied()
         .filter(|project| !is_chat(project, &meta))
+        .partition(|project| meta.dot_id(&project.project_id).is_some());
+    let (bots, projects): (Vec<&PresentationProject>, Vec<&PresentationProject>) = rest
+        .into_iter()
         .partition(|project| meta.bot_profile(&project.project_id).is_some());
     let project_order = order_sidebar_projects(projects.into_iter(), &meta);
     let bot_order = order_sidebar_projects(bots.into_iter(), &meta);
+    let dot_order = order_sidebar_projects(dots.into_iter(), &meta);
     meta.chat_order = chat_order;
     meta.project_order = project_order;
     meta.bot_order = bot_order;
+    meta.dot_order = dot_order;
     meta.project_settings_count = project_settings_count(machine);
     meta
 }
@@ -369,6 +395,9 @@ fn merge_overlay(
     if let Some(bot_profile) = patch.bot_profile {
         overlay.bot_profile = Some(bot_profile);
     }
+    if let Some(dot_id) = patch.dot_id {
+        overlay.dot_id = Some(dot_id);
+    }
     if let Some(order_index) = patch.order_index {
         overlay.order_index = Some(order_index);
     }
@@ -383,6 +412,7 @@ struct ProjectOverlayPatch {
     is_chat_project: bool,
     is_quick_project: bool,
     bot_profile: Option<String>,
+    dot_id: Option<String>,
     order_index: Option<usize>,
     worktree: Option<WorktreeView>,
 }
@@ -393,6 +423,7 @@ impl ProjectOverlayPatch {
             && !self.is_chat_project
             && !self.is_quick_project
             && self.bot_profile.is_none()
+            && self.dot_id.is_none()
             && self.order_index.is_none()
             && self.worktree.is_none()
     }

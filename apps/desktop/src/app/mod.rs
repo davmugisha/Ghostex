@@ -64,6 +64,7 @@ pub(crate) mod native_bot_feed;
 pub(crate) mod native_chat;
 pub(crate) mod native_docs;
 pub(crate) mod native_kanban;
+pub(crate) mod native_open_dots;
 pub(crate) mod native_sidebar;
 pub(crate) mod new_agent_session;
 pub(crate) mod new_coordinator_modal_lifecycle;

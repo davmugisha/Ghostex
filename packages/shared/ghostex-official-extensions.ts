@@ -41,6 +41,7 @@ export type GhostexOfficialExtensionSettingsKey = Extract<
   | 'helpTitlebarButtonHidden'
   | 'kanbanViewTabHidden'
   | 'notificationsTitlebarButtonHidden'
+  | 'openDotsHidden'
   | 'openInTitlebarButtonHidden'
   | 'quickActionsTitlebarButtonHidden'
   | 'resourcesTitlebarButtonHidden'
@@ -89,6 +90,7 @@ export type GhostexOfficialExtensionId =
   | 'help'
   | 'kanban'
   | 'notifications'
+  | 'openDots'
   | 'openIn'
   | 'quickActions'
   | 'resources'
@@ -195,6 +197,20 @@ export const GHOSTEX_OFFICIAL_EXTENSIONS: readonly GhostexOfficialExtension[] = 
     requiresExtension: 'bots',
     settingsKey: 'botAutomationsHidden',
     title: 'Bot automations',
+  },
+  /**
+   * CDXC:OpenDots 2026-10-01 DECISION:
+   * User: OpenDots (Open Dot's personal agents) is a new extension on Settings > Extensions, built into Ghostex for now, that shows as a new Space in the sidebar when enabled. It is off by default like Bots.
+   */
+  {
+    appWide: true,
+    description:
+      'Personal agents that work on their own: each dot has its own browser, memory, rules and routines, asks before anything risky, and shows as a Dots Space in the sidebar.',
+    category: 'planning',
+    id: 'openDots',
+    placement: 'sidebar',
+    settingsKey: 'openDotsHidden',
+    title: 'OpenDots',
   },
   {
     description: 'Browse your project’s notes, plans, and reference files together in one focused reading space.',

@@ -52,7 +52,7 @@ pub struct SidebarRevealPlan {
     /// The id the group's own UI state is keyed by.
     pub storage_id: String,
     /// The sidebar mode that lists the group, when it is not the one showing: a bot row is only
-    /// in Bots mode's list and a project row only in Projects mode's.
+    /// in Bots mode's list, a dot row only in Dots mode's and a project row only in Projects mode's.
     pub select_mode: Option<SidebarMode>,
     /// The Space that shows the group, when it is not the one the section is filtered by.
     pub select_space: Option<String>,
@@ -173,12 +173,13 @@ pub fn reveal_plan(
     });
     let inputs = switched.as_ref().unwrap_or(inputs);
     let parking = inputs.settings.enable_session_parking;
-    // A bot row is only in Bots mode's list and a project row only in Projects mode's, so the
-    // row's kind names the mode the reveal has to be in. Bots switched off draws no bot row at all.
-    let row_mode = match row_is_bot(core, sidebar_session_id) {
-        true if !inputs.settings.bots_enabled => return None,
-        true => SidebarMode::Bots,
-        false => SidebarMode::Projects,
+    // A bot row is only in Bots mode's list, a dot row only in Dots mode's and a project row only
+    // in Projects mode's, so the row's kind names the mode the reveal has to be in. Bots (or
+    // OpenDots) switched off draws no bot (or dot) row at all.
+    let row_mode = match mode_of_row(core, sidebar_session_id) {
+        SidebarMode::Bots if !inputs.settings.bots_enabled => return None,
+        SidebarMode::Dots if !inputs.settings.dots_enabled => return None,
+        mode => mode,
     };
     let select_mode =
         (row_mode != effective_sidebar_mode(&inputs.settings, &inputs.ui)).then_some(row_mode);
@@ -350,11 +351,11 @@ pub fn space_for_focused_row(
     // Spaces off is the whole answer, and it is the common case: `describeNativeSidebarMachine`
     // reads no Spaces state at all then, so neither the follow nor the memory has anything to say
     // and nothing below runs.
-    // A bot belongs to no Space, and Bots mode draws none, so neither has a Space to follow or
-    // remember; asking a build would only find that out the slow way.
+    // A bot or a dot belongs to no Space, and Bots and Dots mode draw none, so none of them has a
+    // Space to follow or remember; asking a build would only find that out the slow way.
     if !inputs.settings.sidebar_spaces_enabled
-        || effective_sidebar_mode(&inputs.settings, &inputs.ui) == SidebarMode::Bots
-        || row_is_bot(core, sidebar_session_id)
+        || effective_sidebar_mode(&inputs.settings, &inputs.ui) != SidebarMode::Projects
+        || mode_of_row(core, sidebar_session_id) != SidebarMode::Projects
     {
         return None;
     }
@@ -410,14 +411,21 @@ fn inputs_for_row_machine(
     (Some(moved), true)
 }
 
-/// Whether the row belongs to a bot project, read off the daemon's project row.
-fn row_is_bot(core: &Core, sidebar_session_id: &str) -> bool {
-    SessionKey::parse_sidebar_session_id(sidebar_session_id).is_some_and(|key| {
+/// The mode whose list the row is in: Dots for a dot project's, Bots for a bot project's,
+/// Projects otherwise, read off the daemon's project row (the same test `build_project_meta`
+/// applies).
+fn mode_of_row(core: &Core, sidebar_session_id: &str) -> SidebarMode {
+    let project = SessionKey::parse_sidebar_session_id(sidebar_session_id).and_then(|key| {
         core.presentation()
             .loaded(&key.machine)
             .and_then(|loaded| loaded.project(&key.project_id))
-            .is_some_and(|project| project.bot_profile.is_some())
-    })
+            .map(|project| (project.dot_id.is_some(), project.bot_profile.is_some()))
+    });
+    match project {
+        Some((true, _)) => SidebarMode::Dots,
+        Some((false, true)) => SidebarMode::Bots,
+        _ => SidebarMode::Projects,
+    }
 }
 
 fn find_group<'a>(view: &'a SidebarView, sidebar_session_id: &str) -> Option<&'a GroupView> {
@@ -507,13 +515,13 @@ fn locate(
 /// exactly this question, and the reveal once had its own copy of the "has it moved" test as well,
 /// which is how the follow and the drawing could have drifted by one section key.
 fn space_of_group(core: &Core, inputs: &SidebarInputs, group: &GroupView) -> Option<String> {
-    // A bot belongs to no Space, so revealing one neither moves nor remembers a Space.
-    let is_bot = group
+    // A bot or a dot belongs to no Space, so revealing one neither moves nor remembers a Space.
+    let spaceless = group
         .core
         .project_context
         .as_ref()
-        .is_some_and(|project| project.bot_profile.is_some());
-    if !inputs.settings.sidebar_spaces_enabled || is_bot {
+        .is_some_and(|project| project.bot_profile.is_some() || project.dot_id.is_some());
+    if !inputs.settings.sidebar_spaces_enabled || spaceless {
         return None;
     }
     let machine = machine_key(&inputs.ui.selected_machine_id);

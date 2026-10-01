@@ -155,11 +155,12 @@ impl<'a> SidebarMenus<'a> {
             //
             // A bot's sessions stay under the bot: Bots lists them flat, with no groups (the bot
             // row's own menu has no New Group, see sidebar_menu/project.rs), so a group made from
-            // one would leave Bots for Projects > Other.
+            // one would leave Bots for Projects > Other. A dot's chats stay under the dot the same
+            // way.
             can_create_session_group: core
                 .project_context
                 .as_ref()
-                .is_some_and(|project| project.bot_profile.is_none())
+                .is_some_and(|project| project.bot_profile.is_none() && project.dot_id.is_none())
                 || is_user_made_group(core.group_id.as_str()),
             // The projection never sets it, so the Focus item never appears.
             can_focus_mode: false,

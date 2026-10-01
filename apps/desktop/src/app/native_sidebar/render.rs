@@ -203,6 +203,13 @@ impl GhostexGpuiApp {
                                             cx,
                                         ))
                                     })
+                                    .when(content.open_dots_row, |column| {
+                                        column.child(self.render_native_sidebar_open_dots_row(
+                                            content.dots_needs_you,
+                                            &appearance,
+                                            cx,
+                                        ))
+                                    })
                                     .when(content.order.is_empty(), |column| {
                                         column.child(self.render_native_sidebar_empty(
                                             &content,

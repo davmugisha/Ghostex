@@ -183,6 +183,10 @@ impl GhostexGpuiApp {
                 {
                     return;
                 }
+                if text.contains("\"type\":\"openDotsChanged\"") {
+                    self.native_open_dots_changed(cx);
+                    return;
+                }
                 match self
                     .gx_store
                     .core
@@ -337,6 +341,7 @@ impl GhostexGpuiApp {
         self.new_thread_picker_agents = hud["agents"].as_array().cloned();
         self.install_native_sidebar_snapshot(Arc::new(snapshot), cx);
         self.web_open_linked_session(cx);
+        self.web_open_linked_open_dots(cx);
         self.web_book_sidebar_deadline(cx);
         // A showing Quick Access republishes from the store it reads (`quick_access/host.rs`).
         self.gx_store_quick_access_store_changed(true, cx);

@@ -465,6 +465,18 @@ pub(crate) mod message {
         })
     }
 
+    /// A dot row's Setup and Computer, and its menu's Open setup: the OpenDots view on that dot's
+    /// `tab` (`chats`, `computer` or `setup`), handled by the desktop (gx_store/create/dot.rs).
+    pub(crate) fn open_dots_view_on_dot(dot_id: &str, tab: &str) -> Value {
+        json!({ "type": "openDotsView", "page": "dot", "dotId": dot_id, "tab": tab })
+    }
+
+    /// A dot row's Pause or Resume, which the host sends to `/api/openDotsRpc`
+    /// (gx_store/create/dot.rs).
+    pub(crate) fn set_dot_paused(dot_id: &str, paused: bool) -> Value {
+        json!({ "type": "setDotPaused", "dotId": dot_id, "paused": paused })
+    }
+
     pub(crate) fn run_sidebar_command(command_id: &str, scope: &str, group_id: &str) -> Value {
         json!({
             "type": "runSidebarCommand",

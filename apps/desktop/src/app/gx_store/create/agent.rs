@@ -472,9 +472,11 @@ impl GhostexGpuiApp {
             None,
         );
         // A Hermes session in a bot is named after the bot: gxserver launches the bot's own profile
-        // in place of the HUD agent resolved here, whose name may be another bot's.
+        // in place of the HUD agent resolved here, whose name may be another bot's. A chat with a
+        // dot is named after the dot.
         let title_name = self
             .gx_store_bot_name(&project_id, &agent.agent_id)
+            .or_else(|| self.gx_store_dot_name(&project_id))
             .unwrap_or_else(|| agent.name.clone());
         let title = agent_session_default_title(Some(&title_name));
         let params = with_run_location(

@@ -72,6 +72,10 @@ impl GhostexGpuiApp {
             self.gx_store_open_bot_file_message(message, cx);
             return true;
         }
+        // A dot's Setup, Computer and Open setup, and its Pause or Resume (dot.rs).
+        if self.gx_store_answer_dot_message(message, cx) {
+            return true;
+        }
         // Close Project carries the successor the store names from the list it draws
         // (sidebar_close_project.rs).
         if message.get("type").and_then(Value::as_str) == Some("closeWorkspaceProjectForGroup") {
@@ -96,6 +100,13 @@ impl GhostexGpuiApp {
         }
         if message.get("type").and_then(Value::as_str) == Some("runSidebarBot") {
             self.gx_store_run_sidebar_bot_message(message, cx);
+            return true;
+        }
+        if message.get("type").and_then(Value::as_str) == Some("runSidebarDot") {
+            self.gx_store_run_sidebar_dot_message(message, cx);
+            return true;
+        }
+        if self.gx_store_answer_dot_message(message, cx) {
             return true;
         }
         self.gx_store_answer_create_message(message, cx)

@@ -80,13 +80,10 @@ impl GhostexGpuiApp {
         window: &mut Window,
         cx: &mut gpui::Context<Self>,
     ) {
-        // Bots mode draws no Space, so there is nothing to swipe between.
-        let Some(snapshot) = self
-            .native_sidebar
-            .snapshot
-            .as_ref()
-            .filter(|snapshot| snapshot.spaces_enabled && !snapshot.bots_mode)
-        else {
+        // Bots and Dots mode draw no Space, so there is nothing to swipe between.
+        let Some(snapshot) = self.native_sidebar.snapshot.as_ref().filter(|snapshot| {
+            snapshot.spaces_enabled && !snapshot.bots_mode && !snapshot.dots_mode
+        }) else {
             return;
         };
         if event.modifiers.control

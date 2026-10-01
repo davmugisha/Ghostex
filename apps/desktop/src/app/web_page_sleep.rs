@@ -179,7 +179,10 @@ impl GhostexGpuiApp {
                             .insert(project_id, tabs.rendered_active_loaded_tab_ids());
                     }
                 }
-                TitlebarMode::Agents | TitlebarMode::Terminal | TitlebarMode::BotFeed => {}
+                TitlebarMode::Agents
+                | TitlebarMode::Terminal
+                | TitlebarMode::BotFeed
+                | TitlebarMode::OpenDots => {}
                 mode => {
                     kept.views.insert(project_id, mode);
                 }

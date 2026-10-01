@@ -405,6 +405,10 @@ pub(super) fn snapshot_from_view(
         bots_mode: view.bots_mode,
         automations_row: view.automations_row,
         automations_today: view.automations_today,
+        dots_enabled: view.dots_enabled,
+        dots_mode: view.dots_mode,
+        open_dots_row: view.open_dots_row,
+        dots_needs_you: view.dots_needs_you,
         collections,
         order: view
             .order
@@ -611,6 +615,31 @@ fn project_context(group: &GroupView) -> Option<Value> {
         object.insert(
             "botGatewayRunning".to_string(),
             Value::Bool(context.bot_gateway_running),
+        );
+    }
+    // Set on a dot's project only, which is how the renderer tells a dot row (native_sidebar/dots.rs).
+    if let Some(dot_id) = &context.dot_id {
+        object.insert("dotId".to_string(), Value::String(dot_id.clone()));
+        insert_optional(&mut object, "dotAgentId", context.dot_agent_id.clone());
+        if let Some(look) = &context.dot_look {
+            object.insert("dotLook".to_string(), look.to_value());
+        }
+        object.insert("dotPaused".to_string(), Value::Bool(context.dot_paused));
+        object.insert(
+            "dotNeedsYou".to_string(),
+            Value::from(context.dot_needs_you),
+        );
+        object.insert(
+            "dotStatus".to_string(),
+            Value::String(
+                match context.dot_status.unwrap_or_default() {
+                    ghostex_gx_core::open_dots::DotFaceStatus::Idle => "idle",
+                    ghostex_gx_core::open_dots::DotFaceStatus::Working => "working",
+                    ghostex_gx_core::open_dots::DotFaceStatus::Waiting => "waiting",
+                    ghostex_gx_core::open_dots::DotFaceStatus::Paused => "paused",
+                }
+                .to_string(),
+            ),
         );
     }
     Some(Value::Object(object))

@@ -121,7 +121,10 @@ impl ProjectEditorSleepingPlaceholderSignature {
             ),
             TitlebarMode::Extension(_) => ("View is sleeping", "Select this view to wake it."),
             // A Ghostex page is drawn by GPUI, so it never sleeps and has no sleeping placeholder.
-            TitlebarMode::Agents | TitlebarMode::Terminal | TitlebarMode::BotFeed => return None,
+            TitlebarMode::Agents
+            | TitlebarMode::Terminal
+            | TitlebarMode::BotFeed
+            | TitlebarMode::OpenDots => return None,
         };
 
         Some(Self {

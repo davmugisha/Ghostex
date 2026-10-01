@@ -169,10 +169,11 @@ impl SidebarUiStore {
             }
             SidebarUiIntent::SelectSpace { space_id } => {
                 let section_key = self.state.section_key();
-                // A Space shows projects, so picking one from Bots mode goes back to Projects.
-                let left_bots = self.set_sidebar_mode(SidebarMode::Projects);
+                // A Space shows projects, so picking one from Bots or Dots mode goes back to
+                // Projects.
+                let left_mode = self.set_sidebar_mode(SidebarMode::Projects);
                 let mut selected = self.set_section_space(section_key, space_id);
-                selected.changed |= left_bots;
+                selected.changed |= left_mode;
                 selected
             }
             SidebarUiIntent::SetSidebarMode { mode } => {
