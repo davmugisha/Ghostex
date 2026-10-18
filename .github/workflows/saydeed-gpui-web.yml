@@ -1,0 +1,37 @@
+name: Build GPUI Web for Saydeed
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      RUSTUP_TOOLCHAIN: 1.95.0
+    steps:
+      - uses: actions/checkout@v6
+      - name: Get GPUI source dependencies
+        run: git submodule update --init --depth 1 .dependencies/zed .dependencies/gpui-component
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - name: Install browser build dependencies
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --target wasm32-unknown-unknown
+          curl --fail --location --retry 3 --output /tmp/zig.tar.xz https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz
+          tar -xf /tmp/zig.tar.xz -C /tmp
+          echo /tmp/zig-x86_64-linux-0.16.0 >> "$GITHUB_PATH"
+          cargo install wasm-bindgen-cli --version 0.2.125 --locked
+          bun install --frozen-lockfile
+      - name: Build Ghostex GPUI Web
+        run: cargo xtask web-build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ghostex-gpui-web
+          path: apps/gpui-web/www/dist/
+          if-no-files-found: error
+          retention-days: 7
