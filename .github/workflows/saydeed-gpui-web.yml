@@ -19,6 +19,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.0
+      - name: Install sccache
+        uses: mozilla-actions/sccache-action@v0.0.11
       - name: Install browser build dependencies
         run: |
           rustup toolchain install 1.95.0 --profile minimal --target wasm32-unknown-unknown
